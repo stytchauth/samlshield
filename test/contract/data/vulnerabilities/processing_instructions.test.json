@@ -1,0 +1,10 @@
+{
+  "name": "Processing Instructions Vulnerability",
+  "description": "Should always detect and block SAML responses with processing instructions",
+  "input": {
+    "response_xml": "!embed:base64:file://processing_instructions.xml"
+  },
+  "shouldSucceed": false,
+  "expectedError": "response contained illegal processing instructions",
+  "expectedErrorCode": "XML_VALIDATION_ERROR"
+}

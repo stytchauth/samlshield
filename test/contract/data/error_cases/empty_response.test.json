@@ -1,0 +1,10 @@
+{
+  "name": "Empty SAML Response",
+  "description": "Should reject empty response_xml",
+  "input": {
+    "response_xml": ""
+  },
+  "shouldSucceed": false,
+  "expectedError": "missing required field: SAMLResponse",
+  "expectedErrorCode": "VALIDATION_ERROR"
+}

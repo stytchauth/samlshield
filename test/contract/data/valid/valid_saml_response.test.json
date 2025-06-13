@@ -1,0 +1,8 @@
+{
+  "name": "Valid SAML Response",
+  "description": "Should pass validation for a properly signed SAML response",
+  "input": {
+    "response_xml": "!embed:base64:file://sp_initiated.xml"
+  },
+  "shouldSucceed": true
+}
