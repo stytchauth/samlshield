@@ -1,0 +1,10 @@
+{
+  "name": "Multiple SignedInfo Elements",
+  "description": "Should detect and block SAML responses with multiple SignedInfo elements in a single signature",
+  "input": {
+    "response_xml": "!embed:base64:file://multiple_signedinfo.xml"
+  },
+  "shouldSucceed": false,
+  "expectedError": "response contained multiple SignedInfo elements in a single signature",
+  "expectedErrorCode": "XML_VALIDATION_ERROR"
+}

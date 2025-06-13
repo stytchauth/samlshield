@@ -1,0 +1,10 @@
+{
+  "name": "Missing Signature",
+  "description": "Should reject SAML responses with no signature on either response or assertion",
+  "input": {
+    "response_xml": "!embed:base64:file://missing_signature.xml"
+  },
+  "shouldSucceed": false,
+  "expectedError": "one of response or assertion must be signed",
+  "expectedErrorCode": "SAML_ASSERTION_NOT_SIGNED"
+}

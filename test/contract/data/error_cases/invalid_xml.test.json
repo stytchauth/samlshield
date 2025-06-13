@@ -1,0 +1,10 @@
+{
+  "name": "Invalid XML Structure",
+  "description": "Should reject non-SAML XML content",
+  "input": {
+    "response_xml": "!embed:base64:<invalid>not a saml response</invalid>"
+  },
+  "shouldSucceed": false,
+  "expectedError": "document does not contain a SAML Response element",
+  "expectedErrorCode": "XML_VALIDATION_ERROR"
+}
