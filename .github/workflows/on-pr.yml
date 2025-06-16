@@ -1,0 +1,36 @@
+name: On Pull Requests [PR]
+on:
+  pull_request:
+    branches: [main]
+jobs:
+  node-lint-build-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Use Node 22.16.0
+        uses: actions/setup-node@v3
+        with:
+          node-version: 22.16.0
+          cache: 'yarn'
+      
+      - name: Install dependencies
+        run: yarn install --immutable
+
+      - name: Run linter
+        run: yarn lint
+
+      - name: Build Packages
+        run: yarn build
+
+      - name: Check formatting
+        run: |
+          yarn format
+
+      - name: Check for changes in the build output
+        run: |
+          git diff --exit-code
+
+      - name: Run tests
+        run: yarn test
+
