@@ -12,8 +12,8 @@ jobs:
         uses: actions/setup-node@v3
         with:
           node-version: 22.16.0
-          cache: 'yarn'
-      
+          cache: "yarn"
+
       - name: Install dependencies
         run: yarn install --immutable
 
@@ -33,4 +33,3 @@ jobs:
 
       - name: Run tests
         run: yarn test
-
