@@ -1,6 +1,6 @@
 {
   "name": "@stytch/samlshield",
-  "version": "1.0.0",
+  "version": "0.1.0",
   "description": "A Node.js library for linting and validating SAML responses",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -13,6 +13,9 @@
     "validation",
     "linting"
   ],
+  "publishConfig": {
+    "access": "restricted"
+  },
   "scripts": {
     "build": "tsc",
     "test": "jest",
@@ -25,8 +28,8 @@
     "xpath": "^0.0.34"
   },
   "devDependencies": {
-    "@types/node": "^22.2.0",
     "@types/jest": "^29.2.3",
+    "@types/node": "^22.2.0",
     "@typescript-eslint/eslint-plugin": "^7.0.1",
     "@typescript-eslint/parser": "^7.0.1",
     "eslint": "^8.56.0",
