@@ -153,4 +153,4 @@ This library is based on the battle-tested SAML validation logic from [Stytch's]
 
 ## License
 
-AGPL-3.0
+Apache-2.0
