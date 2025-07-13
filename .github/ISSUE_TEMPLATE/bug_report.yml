@@ -1,0 +1,46 @@
+name: 🐞 OSS Bug Report
+description: Report unexpected behavior in the open-source SAML Shield library
+title: "[Bug] <brief summary>"
+labels: ["bug", "needs-triage"]
+assignees: []
+
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ⚠️ This form is for OSS users only. If you're using the **SaaS-managed version**, please request support in the [Stytch Slack](https://join.slack.com/t/stytch/shared_invite/zt-2n6jvvgzm-fAyxi_kr1uqGc15UJqxiPw).
+
+  - type: input
+    id: version
+    attributes:
+      label: SAML Shield Version
+      placeholder: e.g., v1.2.3 or main
+    validations:
+      required: true
+
+  - type: textarea
+    id: description
+    attributes:
+      label: What happened?
+      placeholder: Describe the issue and what you expected to happen.
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to Reproduce
+      placeholder: |
+        1. Do this...
+        2. Observe this...
+        3. Expected result was...
+    validations:
+      required: false
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs or Assertion (Optional)
+      description: Share any logs or a redacted SAML assertion that helps reproduce the issue.
+    validations:
+      required: false

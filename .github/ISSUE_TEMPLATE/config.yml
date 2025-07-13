@@ -1,0 +1,18 @@
+blank_issues_enabled: true
+contact_links:
+  - name: 🧑‍💻 Managed Version Support (Stytch Slack)
+    url: https://join.slack.com/t/stytch/shared_invite/zt-2n6jvvgzm-fAyxi_kr1uqGc15UJqxiPw
+    about: For SaaS-managed version support, please use the Stytch Slack.
+
+issue_templates:
+  - name: 🐞 OSS Bug Report
+    description: Report unexpected behavior in the open-source SAML Shield library
+    file: bug_report.yml
+
+  - name: ✨ OSS Feature Request
+    description: Suggest a feature or improvement for the OSS library
+    file: feature_request.yml
+
+  - name: 🛡️ Request Coverage for Existing CVE
+    description: Submit a public CVE you'd like SAML Shield to proactively block
+    file: cve_request.yml

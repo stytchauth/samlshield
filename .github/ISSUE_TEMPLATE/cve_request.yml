@@ -1,0 +1,45 @@
+name: 🛡️ Request Coverage for Existing CVE
+description: Ask for coverage of a known CVE affecting SAML implementations
+title: "[CVE Request] <CVE ID or vulnerability summary>"
+labels: ["cve-request", "security", "needs-triage"]
+assignees: []
+
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ⚠️ This form is for OSS users only. If you're using the **SaaS-managed version**, please request support in the [Stytch Slack](https://join.slack.com/t/stytch/shared_invite/zt-2n6jvvgzm-fAyxi_kr1uqGc15UJqxiPw).
+
+        🔒 If you're unsure whether the vulnerability is public or sensitive, please report it **privately first** by emailing [security@stytch.com](mailto:security@stytch.com). We’ll review and advise you on how to proceed, in line with our [Security Policy](https://github.com/stytchauth/samlshield/blob/main/SECURITY.md).
+
+  - type: input
+    id: cve_id
+    attributes:
+      label: CVE Identifier
+      placeholder: e.g., CVE-2025-25291
+    validations:
+      required: true
+
+  - type: textarea
+    id: description
+    attributes:
+      label: Vulnerability Summary
+      placeholder: What does this CVE allow an attacker to do? Do you have any blog posts or reference links?
+    validations:
+      required: true
+
+  - type: input
+    id: affected_libs
+    attributes:
+      label: Affected Libraries or Toolkits
+      placeholder: e.g., python-saml, ruby-saml, node-saml
+    validations:
+      required: false
+
+  - type: textarea
+    id: example_payload
+    attributes:
+      label: Example SAML Assertion (Optional)
+      description: If possible, provide a sample assertion that reproduces the issue (please redact sensitive info).
+    validations:
+      required: false
