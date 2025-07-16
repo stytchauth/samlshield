@@ -1,7 +1,10 @@
 {
   "name": "PingOne IDP Initiated Only Response Signed",
   "description": "Should pass validation for PingOne IDP initiated with only response signed",
-  "comment": ["Test response generated from personal PingOne acct.", "Only the response is signed"],
+  "comment": [
+    "Test response generated from personal PingOne acct.",
+    "Only the response is signed"
+  ],
   "input": {
     "response_xml": "!embed:base64:file://idp_initiated_only_response_signed.xml"
   },

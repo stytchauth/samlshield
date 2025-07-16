@@ -1,0 +1,13 @@
+#!/usr/bin/env sh
+. "$(dirname -- "$0")/_/husky.sh"
+
+echo "Running format"
+yarn format
+echo "Running lint"
+yarn lint
+echo "Running build"
+yarn build
+echo "Running test"
+yarn test
+echo "Checking diff..."
+git diff --exit-code

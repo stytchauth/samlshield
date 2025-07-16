@@ -17,6 +17,15 @@ A Node.js library for linting and validating SAML responses. This library provid
 yarn add @stytch/samlshield
 ```
 
+## Development Setup
+
+For contributing to this project:
+
+```bash
+yarn install
+yarn hooks # registers Git hooks locally
+```
+
 ## Quick Start
 
 ```javascript
@@ -146,6 +155,17 @@ The library uses a **contract testing pattern**, providing systematic testing of
 - Edge cases and error conditions
 
 See [CONTRACT_TESTING.md](CONTRACT_TESTING.md) for details on the testing approach.
+
+## Development Workflow
+
+### Preparing to push
+
+- `yarn format` - formats TypeScript code
+- `yarn lint` - runs linter
+- `yarn build` - builds and checks types
+- `yarn test` - runs test suite
+
+We use [`husky`](https://github.com/typicode/husky) to run these all in a pre-commit hook.
 
 ## Based on Stytch's Auth API
 
