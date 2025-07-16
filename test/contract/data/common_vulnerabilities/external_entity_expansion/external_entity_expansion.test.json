@@ -1,0 +1,15 @@
+{
+  "name": "XML External Entity (XXE) Attack",
+  "description": "Should detect and block XML external entity attacks",
+  "comment": [
+    "XML External Entity Attack",
+    "We disable all external entity validation in our parsing logic",
+    "https://owasp.org/www-community/vulnerabilities/XML_External_Entity_(XXE)_Processing"
+  ],
+  "input": {
+    "response_xml": "!embed:base64:file://external_entity_expansion.xml"
+  },
+  "shouldSucceed": false,
+  "expectedError": "Invalid input: External Entities are forbidden",
+  "expectedErrorCode": "XML_VALIDATION_ERROR"
+}

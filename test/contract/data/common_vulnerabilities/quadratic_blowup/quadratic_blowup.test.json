@@ -1,0 +1,14 @@
+{
+  "name": "Quadratic Blowup XML DOS Attack",
+  "description": "Should detect and block quadratic blowup XML DOS attack",
+  "comment": [
+    "XML DOS attack: Quadratic Blowup:",
+    "https://www.acunetix.com/vulnerabilities/web/xml-quadratic-blowup-denial-of-service-attack/"
+  ],
+  "input": {
+    "response_xml": "!embed:base64:file://quadratic_blowup.xml"
+  },
+  "shouldSucceed": false,
+  "expectedError": "Invalid input: External Entities are forbidden",
+  "expectedErrorCode": "XML_VALIDATION_ERROR"
+}

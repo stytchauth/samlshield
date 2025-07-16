@@ -1,0 +1,12 @@
+{
+  "name": "PingOne IDP Initiated Response and Assertions Signed",
+  "description": "Should pass validation for PingOne IDP initiated with both response and assertion signed using SHA256",
+  "comment": [
+    "Test response generated from personal PingOne acct.",
+    "Both assertion and response are signed using SHA256"
+  ],
+  "input": {
+    "response_xml": "!embed:base64:file://idp_initiated_response_signed_assertions_signed.xml"
+  },
+  "shouldSucceed": true
+}

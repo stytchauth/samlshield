@@ -1,0 +1,12 @@
+{
+  "name": "Google IDP Initiated",
+  "description": "Should pass validation for Google Workspace IDP initiated SAML response",
+  "comment": [
+    "Test data generated from stytchdev Google Worksace testing account",
+    "To connect with minisp running locally - spin up an NGROK instance"
+  ],
+  "input": {
+    "response_xml": "!embed:base64:file://idp_initiated.xml"
+  },
+  "shouldSucceed": true
+}

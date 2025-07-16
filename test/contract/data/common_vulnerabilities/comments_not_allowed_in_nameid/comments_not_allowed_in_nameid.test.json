@@ -1,0 +1,22 @@
+{
+  "name": "XML Comments Not Allowed in NameID",
+  "description": "Should detect and block XML comments in SAML NameID elements (CVE-2017-11427)",
+  "comment": [
+    "Test metadata generated from personal Okta acct",
+    "Attack looks like setting <NameID>victim@example.com<!-- I am a comment -->.evil.com</NameID>",
+    "which causes a valid assertion for victim@example.com.evil.com to grant access to victim@example.com 's account",
+    "The test case XML sets mgerber<!-- comment -->@berkeley.edu",
+    "But the resultant nameID should still be read as mgerber",
+    "See: CVE-2017-11427",
+    "https://duo.com/blog/duo-finds-saml-vulnerabilities-affecting-multiple-implementations",
+    "To evaluate test case:",
+    "diff contract_tests/data/v1_validate_saml_response/assets/misc/comment_in_nameid.formatted.xml \\",
+    "contract_tests/data/v1_validate_saml_response/assets/okta_personal/okta_personal_idp_initiated_response.formatted.xml"
+  ],
+  "input": {
+    "response_xml": "!embed:base64:file://comment_in_nameid.xml"
+  },
+  "shouldSucceed": false,
+  "expectedError": "Invalid input: response contained illegal XML comments",
+  "expectedErrorCode": "XML_VALIDATION_ERROR"
+}

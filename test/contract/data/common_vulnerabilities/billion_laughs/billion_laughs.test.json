@@ -1,0 +1,10 @@
+{
+  "name": "Billion Laughs XML DOS Attack",
+  "description": "Tests protection against billion laughs XML DOS attack using external entity expansion",
+  "input": {
+    "response_xml": "!embed:base64:file://billion_laughs.xml"
+  },
+  "shouldSucceed": false,
+  "expectedError": "Invalid input: External Entities are forbidden",
+  "expectedErrorCode": "XML_VALIDATION_ERROR"
+}

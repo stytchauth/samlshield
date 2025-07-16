@@ -1,0 +1,9 @@
+{
+  "name": "OneLogin SP Initiated",
+  "description": "Should pass validation for OneLogin SP initiated SAML response",
+  "comment": ["Test response generated from personal OneLogin acct."],
+  "input": {
+    "response_xml": "!embed:base64:file://sp_initiated.xml"
+  },
+  "shouldSucceed": true
+}

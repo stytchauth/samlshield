@@ -1,0 +1,92 @@
+<?xml version="1.0"?>
+<samlp:Response xmlns:samlp="urn:oasis:names:tc:SAML:2.0:protocol" xmlns:saml="urn:oasis:names:tc:SAML:2.0:assertion" Destination="http://localhost:5001/callback" ID="ID_b0532901-16ee-4e8f-bec5-37adac1ed911" InResponseTo="SOME_RANDOM_ID" IssueInstant="2022-11-23T00:57:38.045Z" Version="2.0">
+  <saml:Issuer>http://localhost:8080/realms/myrealm</saml:Issuer>
+  <dsig:Signature xmlns:dsig="http://www.w3.org/2000/09/xmldsig#">
+    <dsig:SignedInfo>
+      <dsig:CanonicalizationMethod Algorithm="http://www.w3.org/2001/10/xml-exc-c14n#"/>
+      <dsig:SignatureMethod Algorithm="http://www.w3.org/2001/04/xmldsig-more#rsa-sha256"/>
+      <dsig:Reference URI="#ID_b0532901-16ee-4e8f-bec5-37adac1ed911">
+        <dsig:Transforms>
+          <dsig:Transform Algorithm="http://www.w3.org/2000/09/xmldsig#enveloped-signature"/>
+          <dsig:Transform Algorithm="http://www.w3.org/2001/10/xml-exc-c14n#"/>
+        </dsig:Transforms>
+        <dsig:DigestMethod Algorithm="http://www.w3.org/2001/04/xmlenc#sha256"/>
+        <dsig:DigestValue>ti/8mAyTBpGpbXiVlAFQ1aWphcBF/fqBh3IuAk58u/Y=</dsig:DigestValue>
+      </dsig:Reference>
+    </dsig:SignedInfo>
+    <dsig:SignatureValue>o7l39IP1NNZuVDiiDSuWs6t5Jl7JK2oJ7WVd10x0ucTFLY0HQZ0P38iVIP47tpiX/FbUuCIkAtFw&#xD;
+7/ecA0b+bQe3kr1YPjJGmYyL9Kl/1slWIb2haG9PTZqjQ/Q4A8/dHGjWWBk+CYRhX6oEQrEABVYg&#xD;
+oR+Dl12UDoH5dwZ3Y2JlqQO0xI9oL2c0UMB5T2pL/zbICj1fQZ+78XVRDT+4FsDFE5KsjRKT8yG0&#xD;
+CYSxiTL/oiByKEiremzTaEwzOU3BU5xO2QIhsgcmekea/K1CVDhYSk87Yf/MjpYHU0DUtMG6VH8W&#xD;
+dAfRrBLbsnJjyV5HMGAD42JNm86/l047Zqqcpw==</dsig:SignatureValue>
+    <dsig:KeyInfo>
+      <dsig:KeyName>UGT_pMZHHOUEDAOs9ZNAO-sbGTuccrAYe_J_bB3Wvu0</dsig:KeyName>
+      <dsig:X509Data>
+        <dsig:X509Certificate>MIICnTCCAYUCBgGEoHzJsjANBgkqhkiG9w0BAQsFADASMRAwDgYDVQQDDAdteXJlYWxtMB4XDTIy&#xD;
+MTEyMjE3NTU0M1oXDTMyMTEyMjE3NTcyM1owEjEQMA4GA1UEAwwHbXlyZWFsbTCCASIwDQYJKoZI&#xD;
+hvcNAQEBBQADggEPADCCAQoCggEBAKx5yPzqGd+b+AZNRI07Q20NUtmK3ra1nqj2RanRJu+QsyKM&#xD;
+IcKZAl9Etm5smwBhmH7e+II9aI2PpTtICEDRiI3n3QEONWL9ye6tbZIcR/8Ks2OTQa4EQsSTm++O&#xD;
+BjnEn8tir5S4CgWEBlYkLg0TMNMr+6qIa9p239ttQtdllQ4OH04AiewxJSlQiPrBTmMe/5IWzu6F&#xD;
+aILExs+Bq3BApP/lIrMfCLm6oOdNSjRT4xa3K9cC+zvddvlqUMzEqgzrMGUq2C/u6J5HhDrgDa6V&#xD;
+CH21nVX5CzfXijN2OF/DDvBJoOFpqAtLjrwTx6DYGIYRKjpEygwi8FwAgSu+T4mQj48CAwEAATAN&#xD;
+BgkqhkiG9w0BAQsFAAOCAQEAb2jagOdRskn68bry9MLfhcI1oLusaNaVY26uVV6H1qpsm0C+7X8G&#xD;
+UQV8Dt8+IEYUNnbSqfQ9NqpUy+tPTqjuoagkBxpnBvy3TMcyKa1YF6xHP951KQ9fsTnqBH4bDncB&#xD;
+pVK4cAvTbHl4ZUNV5o2+IKLVjxTAwfammw9gLzK2nr86jNlhflAl4IZX5M1vVtiFvAFPDachHVjd&#xD;
+m06VHzYOi17yXCIDpKhzXZ7WK0AEG41XxoBDs2qRGSJPtKJiW8LDHrPfk0et9F1y0pvRlbf4IhVN&#xD;
+kUdTSUNoBXp2LDvnrtJku6fRRxO2v04ZDhskW2k6bfPA55Dzyqdoo0b3TJMSpw==</dsig:X509Certificate>
+      </dsig:X509Data>
+      <dsig:KeyValue>
+        <dsig:RSAKeyValue>
+          <dsig:Modulus>rHnI/OoZ35v4Bk1EjTtDbQ1S2YretrWeqPZFqdEm75CzIowhwpkCX0S2bmybAGGYft74gj1ojY+l&#xD;
+O0gIQNGIjefdAQ41Yv3J7q1tkhxH/wqzY5NBrgRCxJOb744GOcSfy2KvlLgKBYQGViQuDRMw0yv7&#xD;
+qohr2nbf221C12WVDg4fTgCJ7DElKVCI+sFOYx7/khbO7oVogsTGz4GrcECk/+Uisx8Iubqg501K&#xD;
+NFPjFrcr1wL7O912+WpQzMSqDOswZSrYL+7onkeEOuANrpUIfbWdVfkLN9eKM3Y4X8MO8Emg4Wmo&#xD;
+C0uOvBPHoNgYhhEqOkTKDCLwXACBK75PiZCPjw==</dsig:Modulus>
+          <dsig:Exponent>AQAB</dsig:Exponent>
+        </dsig:RSAKeyValue>
+      </dsig:KeyValue>
+    </dsig:KeyInfo>
+  </dsig:Signature>
+  <samlp:Status>
+    <samlp:StatusCode Value="urn:oasis:names:tc:SAML:2.0:status:Success"/>
+  </samlp:Status>
+  <saml:Assertion xmlns="urn:oasis:names:tc:SAML:2.0:assertion" ID="ID_f330d0e8-9985-4b05-ba55-96c734bf58bb" IssueInstant="2022-11-23T00:57:38.045Z" Version="2.0">
+    <saml:Issuer>http://localhost:8080/realms/myrealm</saml:Issuer>
+    <saml:Subject>
+      <saml:NameID Format="urn:oasis:names:tc:SAML:1.1:nameid-format:emailAddress">myuser@stytch.com</saml:NameID>
+      <saml:SubjectConfirmation Method="urn:oasis:names:tc:SAML:2.0:cm:bearer">
+        <saml:SubjectConfirmationData InResponseTo="SOME_RANDOM_ID" NotOnOrAfter="2022-11-23T01:02:36.045Z" Recipient="http://localhost:5001/callback"/>
+      </saml:SubjectConfirmation>
+    </saml:Subject>
+    <saml:Conditions NotBefore="2022-11-23T00:57:36.045Z" NotOnOrAfter="2022-11-23T00:58:36.045Z">
+      <saml:AudienceRestriction>
+        <saml:Audience>test-saml</saml:Audience>
+      </saml:AudienceRestriction>
+    </saml:Conditions>
+    <saml:AuthnStatement AuthnInstant="2022-11-23T00:57:38.045Z" SessionIndex="703c0241-7665-4364-822a-e6cc1027f919::e689de42-db5f-480d-b0bd-8725292eb2e5" SessionNotOnOrAfter="2022-11-23T10:57:38.045Z">
+      <saml:AuthnContext>
+        <saml:AuthnContextClassRef>urn:oasis:names:tc:SAML:2.0:ac:classes:unspecified</saml:AuthnContextClassRef>
+      </saml:AuthnContext>
+    </saml:AuthnStatement>
+    <saml:AttributeStatement>
+      <saml:Attribute Name="Role" NameFormat="urn:oasis:names:tc:SAML:2.0:attrname-format:basic">
+        <saml:AttributeValue xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="xs:string">offline_access</saml:AttributeValue>
+      </saml:Attribute>
+      <saml:Attribute Name="Role" NameFormat="urn:oasis:names:tc:SAML:2.0:attrname-format:basic">
+        <saml:AttributeValue xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="xs:string">uma_authorization</saml:AttributeValue>
+      </saml:Attribute>
+      <saml:Attribute Name="Role" NameFormat="urn:oasis:names:tc:SAML:2.0:attrname-format:basic">
+        <saml:AttributeValue xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="xs:string">view-profile</saml:AttributeValue>
+      </saml:Attribute>
+      <saml:Attribute Name="Role" NameFormat="urn:oasis:names:tc:SAML:2.0:attrname-format:basic">
+        <saml:AttributeValue xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="xs:string">default-roles-myrealm</saml:AttributeValue>
+      </saml:Attribute>
+      <saml:Attribute Name="Role" NameFormat="urn:oasis:names:tc:SAML:2.0:attrname-format:basic">
+        <saml:AttributeValue xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="xs:string">manage-account</saml:AttributeValue>
+      </saml:Attribute>
+      <saml:Attribute Name="Role" NameFormat="urn:oasis:names:tc:SAML:2.0:attrname-format:basic">
+        <saml:AttributeValue xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="xs:string">manage-account-links</saml:AttributeValue>
+      </saml:Attribute>
+    </saml:AttributeStatement>
+  </saml:Assertion>
+</samlp:Response>

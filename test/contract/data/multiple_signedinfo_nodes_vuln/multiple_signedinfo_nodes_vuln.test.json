@@ -1,0 +1,14 @@
+{
+  "name": "Multiple SignedInfo Nodes Vulnerability",
+  "description": "Should properly detect and handle multiple SignedInfo elements in a single signature",
+  "comment": [
+    "Validates that if we receive a SAML assertion with multiple SignedInfo elements in a single Signature, we fail",
+    "Solves XML Signature Bypass via Multiple SignedInfo References"
+  ],
+  "input": {
+    "response_xml": "!embed:base64:file://poc.xml"
+  },
+  "shouldSucceed": false,
+  "expectedError": "Invalid input: response contained multiple SignedInfo elements",
+  "expectedErrorCode": "XML_VALIDATION_ERROR"
+}

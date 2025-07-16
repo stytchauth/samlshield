@@ -1,0 +1,13 @@
+{
+  "name": "Google Groups and Attributes",
+  "description": "Should pass validation for Google Workspace with groups and attributes",
+  "comment": [
+    "Test data generated from stytchdev Google Worksace testing account",
+    "Adds two groups, some filled attributes, and some nil attributes",
+    "To connect with minisp running locally - spin up an NGROK instance"
+  ],
+  "input": {
+    "response_xml": "!embed:base64:file://groups_and_attributes.xml"
+  },
+  "shouldSucceed": true
+}

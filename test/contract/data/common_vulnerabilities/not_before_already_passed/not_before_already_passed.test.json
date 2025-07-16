@@ -1,0 +1,16 @@
+{
+  "name": "SAML Assertion Not Yet Valid (NotBefore)",
+  "description": "Should detect and reject SAML assertions that are not yet valid",
+  "comment": [
+    "Test metadata generated from personal Okta acct",
+    "This input is identical to okta_personal_sp_initiated_groups.test.json",
+    "except the timestamp has been shifted back by one day (22-11-16 vs 22-11-17) "
+  ],
+  "input": {
+    "response_xml": "!embed:base64:file://okta_personal_sp_initiated_groups_response.xml"
+  },
+  "skip": true,
+  "shouldSucceed": false,
+  "expectedError": "SAML assertion not yet valid",
+  "expectedErrorCode": "SAML_ASSERTION_NOT_YET_VALID"
+}

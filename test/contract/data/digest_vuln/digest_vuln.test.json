@@ -1,0 +1,14 @@
+{
+  "name": "XML Signature Bypass via DigestValue Comment",
+  "description": "Should detect and block XML signature bypass via DigestValue comment injection",
+  "comment": [
+    "Validates that if we receive a SAML containing comments, we fail",
+    "Solves XML Signature Bypass via DigestValue Comment"
+  ],
+  "input": {
+    "response_xml": "!embed:base64:file://poc.xml"
+  },
+  "shouldSucceed": false,
+  "expectedError": "Invalid input: response contained illegal XML comments",
+  "expectedErrorCode": "XML_VALIDATION_ERROR"
+}

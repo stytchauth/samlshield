@@ -1,0 +1,22 @@
+{
+  "name": "Embedded XML Comment in Attribute Value",
+  "description": "Should detect and block embedded XML comments in SAML attribute values (CVE-2017-11427)",
+  "comment": [
+    "Test metadata generated from personal Okta acct",
+    "Attack looks like setting <attribute name=\"role\"><attributevalue>ADMIN<!-- I am a comment -->_READONLY</attributevalue></..>",
+    "which causes a valid assertion granting a role of ADMIN_READONLY to grant a role of ADMIN",
+    "The test case XML sets Group<!-- comment -->One",
+    "But the resultant attribute value should still be read as Group One",
+    "See: CVE-2017-11427",
+    "https://duo.com/blog/duo-finds-saml-vulnerabilities-affecting-multiple-implementations",
+    "To evaluate test case:",
+    "diff contract_tests/data/v1_validate_saml_response/assets/misc/comment_in_attribute_value.formatted.xml \\",
+    "contract_tests/data/v1_validate_saml_response/assets/okta_personal/okta_personal_sp_initiated_groups_response.formatted.xml"
+  ],
+  "input": {
+    "response_xml": "!embed:base64:file://comment_in_attribute_value.xml"
+  },
+  "shouldSucceed": false,
+  "expectedError": "Invalid input: response contained illegal XML comments",
+  "expectedErrorCode": "XML_VALIDATION_ERROR"
+}

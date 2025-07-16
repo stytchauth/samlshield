@@ -1,0 +1,9 @@
+{
+  "name": "Okta SP Initiated Explicit Username",
+  "description": "Should pass validation for Okta SP initiated with explicit username",
+  "comment": "Test metadata generated from personal Okta acct",
+  "input": {
+    "response_xml": "!embed:base64:file://okta_personal_sp_initiated_explicit_username.xml"
+  },
+  "shouldSucceed": true
+}

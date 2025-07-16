@@ -1,0 +1,9 @@
+{
+  "name": "Okta SP Initiated Groups",
+  "description": "Should pass validation for Okta SP initiated with groups",
+  "comment": "Test metadata generated from personal Okta acct",
+  "input": {
+    "response_xml": "!embed:base64:file://okta_personal_sp_initiated_groups_response.xml"
+  },
+  "shouldSucceed": true
+}

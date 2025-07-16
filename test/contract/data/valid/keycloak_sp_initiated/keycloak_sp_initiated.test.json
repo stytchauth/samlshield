@@ -1,0 +1,13 @@
+{
+  "name": "Keycloak SP Initiated",
+  "description": "Should pass validation for Keycloak SP initiated SAML response",
+  "comment": [
+    "Test saml response sent for test keycloak acct. ",
+    "The response we attempt to validate has extra characters encoded ",
+    "that must be stripped by our transformations."
+  ],
+  "input": {
+    "response_xml": "!embed:base64:file://keycloak_sp_initiated_response.xml"
+  },
+  "shouldSucceed": true
+}

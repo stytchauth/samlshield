@@ -1,0 +1,9 @@
+{
+  "name": "PingOne Groups and Emails as Attributes",
+  "description": "Should pass validation for PingOne with groups and email attributes",
+  "comment": ["Test response generated from personal PingOne acct.", "Includes email and group claims"],
+  "input": {
+    "response_xml": "!embed:base64:file://groups_and_email_as_attributes.xml"
+  },
+  "shouldSucceed": true
+}

@@ -1,0 +1,12 @@
+{
+  "name": "SAML Assertion Audience Mismatch",
+  "description": "Should detect and reject SAML assertions with mismatched audience",
+  "comment": "Test metadata generated from personal Okta acct",
+  "input": {
+    "response_xml": "!embed:base64:file://okta_personal_idp_initiated_response.xml"
+  },
+  "skip": true,
+  "shouldSucceed": false,
+  "expectedError": "SAML assertion audience mismatch. Expected: INVALID sp_entity_id Received: example",
+  "expectedErrorCode": "SAML_ASSERTION_AUDIENCE_MISMATCH"
+}

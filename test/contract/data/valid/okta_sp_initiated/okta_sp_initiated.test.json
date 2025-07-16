@@ -1,0 +1,9 @@
+{
+  "name": "Okta SP Initiated",
+  "description": "Should pass validation for Okta SP initiated SAML response",
+  "comment": "Test metadata generated from personal Okta acct",
+  "input": {
+    "response_xml": "!embed:base64:file://okta_personal_sp_initiated_response.xml"
+  },
+  "shouldSucceed": true
+}

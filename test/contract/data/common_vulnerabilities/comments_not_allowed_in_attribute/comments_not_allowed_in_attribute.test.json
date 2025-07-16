@@ -1,0 +1,19 @@
+{
+  "name": "XML Comments Not Allowed in Attributes",
+  "description": "Should detect and block XML comments in SAML attribute values (CVE-2017-11427)",
+  "comment": [
+    "Test metadata generated from personal Okta acct",
+    "See: CVE-2017-11427",
+    "https://duo.com/blog/duo-finds-saml-vulnerabilities-affecting-multiple-implementations",
+    "Stronger safety precaution after #incident-2025-03-05-node-saml-vuln - ban all comments",
+    "To evaluate test case:",
+    "diff contract_tests/data/v1_validate_saml_response/assets/misc/comment_in_attribute_value.formatted.xml \\",
+    "contract_tests/data/v1_validate_saml_response/assets/okta_personal/okta_personal_sp_initiated_groups_response.formatted.xml"
+  ],
+  "input": {
+    "response_xml": "!embed:base64:file://comment_in_attribute_value.xml"
+  },
+  "shouldSucceed": false,
+  "expectedError": "Invalid input: response contained illegal XML comments",
+  "expectedErrorCode": "XML_VALIDATION_ERROR"
+}

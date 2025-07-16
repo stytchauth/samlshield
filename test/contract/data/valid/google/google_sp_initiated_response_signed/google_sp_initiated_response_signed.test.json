@@ -1,0 +1,14 @@
+{
+  "name": "Google SP Initiated Response Signed",
+  "description": "Should pass validation for Google Workspace SP initiated with response signing",
+  "comment": [
+    "Test data generated from stytchdev Google Worksace testing account",
+    "Google will sign the Response or the Assertion, but not both!",
+    "By default, the Assertion is signed. This login has the Response signed instead",
+    "To connect with minisp running locally - spin up an NGROK instance"
+  ],
+  "input": {
+    "response_xml": "!embed:base64:file://sp_initiated_response_signed.xml"
+  },
+  "shouldSucceed": true
+}

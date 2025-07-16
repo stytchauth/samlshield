@@ -1,0 +1,12 @@
+{
+  "name": "Google SP Initiated",
+  "description": "Should pass validation for Google Workspace SP initiated SAML response",
+  "comment": [
+    "Test data generated from stytchdev Google Worksace testing account",
+    "To connect with minisp running locally - spin up an NGROK instance"
+  ],
+  "input": {
+    "response_xml": "!embed:base64:file://sp_initiated.xml"
+  },
+  "shouldSucceed": true
+}

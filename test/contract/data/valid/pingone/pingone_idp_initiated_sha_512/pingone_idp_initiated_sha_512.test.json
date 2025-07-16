@@ -1,0 +1,12 @@
+{
+  "name": "PingOne IDP Initiated SHA-512",
+  "description": "Should pass validation for PingOne IDP initiated with SHA-512 signing",
+  "comment": [
+    "Test response generated from personal PingOne acct.",
+    "Both assertion and response are signed using SHA512"
+  ],
+  "input": {
+    "response_xml": "!embed:base64:file://sha_512.xml"
+  },
+  "shouldSucceed": true
+}

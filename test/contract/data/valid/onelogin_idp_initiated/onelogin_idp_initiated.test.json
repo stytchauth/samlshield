@@ -1,0 +1,19 @@
+{
+  "name": "OneLogin IDP Initiated",
+  "description": "Should pass validation for OneLogin IDP initiated SAML response",
+  "comment": [
+    "Test metadata generated from personal OneLogin acct.",
+    "Dashboard settings: ",
+    "Audience is set to test_audience_entity_id.",
+    "Recipient is set to test_audience_recipient",
+    "ACS URL is set to http://localhost:5001/callback",
+    "NameID is set to email.",
+    "Groups is set to User Roles - single value output.",
+    "Hobbies is set to AD/LDAP CN Extraction (Multi-value output)",
+    "Roles is set to Semicolon Delimited input (Multi-value output)"
+  ],
+  "input": {
+    "response_xml": "!embed:base64:file://idp_initiated.xml"
+  },
+  "shouldSucceed": true
+}

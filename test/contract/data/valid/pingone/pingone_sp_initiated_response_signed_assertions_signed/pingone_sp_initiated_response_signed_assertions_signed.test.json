@@ -1,0 +1,13 @@
+{
+  "name": "PingOne SP Initiated Response Signed Assertions Signed",
+  "description": "Should pass validation for PingOne SP initiated with both response and assertion signing",
+  "comment": [
+    "Test response generated from personal PingOne acct.",
+    "SP initiated via minisp",
+    "Both assertion and response are signed using SHA512"
+  ],
+  "input": {
+    "response_xml": "!embed:base64:file://sp_initiated_response_signed_assertions_signed.xml"
+  },
+  "shouldSucceed": true
+}

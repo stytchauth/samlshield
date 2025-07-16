@@ -1,0 +1,17 @@
+{
+  "name": "Processing Instructions Not Allowed",
+  "description": "Should detect and block XML processing instructions in SAML responses",
+  "comment": [
+    "Test metadata generated from personal Okta acct",
+    "Stronger safety precaution after #incident-2025-06-03-yet-another-saml-canonicalization-vuln - ban all processing instructions",
+    "To evaluate test case:",
+    "diff contract_tests/data/v1_validate_saml_response/assets/misc/processing_instruction_in_nameid.formatted.xml \\",
+    "contract_tests/data/v1_validate_saml_response/assets/okta_personal/okta_personal_sp_initiated_groups_response.formatted.xml"
+  ],
+  "input": {
+    "response_xml": "!embed:base64:file://processing_instruction_in_nameid.xml"
+  },
+  "shouldSucceed": false,
+  "expectedError": "Invalid input: response contained illegal processing instructions",
+  "expectedErrorCode": "XML_VALIDATION_ERROR"
+}

@@ -1,0 +1,9 @@
+{
+  "name": "Okta IDP Initiated",
+  "description": "Should pass validation for Okta IDP initiated SAML response",
+  "comment": "Test metadata generated from personal Okta acct",
+  "input": {
+    "response_xml": "!embed:base64:file://okta_personal_idp_initiated_response.xml"
+  },
+  "shouldSucceed": true
+}
