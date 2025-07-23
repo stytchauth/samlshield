@@ -1,4 +1,7 @@
-const { lintSAMLResponse, safeLintSAMLResponse } = require("../dist/index.js");
+const {
+  validateSAMLResponse,
+  safeValidateSAMLResponse,
+} = require("../dist/index.js");
 
 // Example SAML response (base64 encoded)
 // This would normally come from your SAML identity provider
@@ -6,12 +9,12 @@ const exampleSAMLResponse =
   "PHNhbWwyOlJlc3BvbnNlIHhtbG5zOnNhbWwyPSJ1cm46b2FzaXM6bmFtZXM6dGM6U0FNTDoyLjA6YXNzZXJ0aW9uIj4KPC9zYW1sMjpSZXNwb25zZT4=";
 
 async function demonstrateBasicUsage() {
-  console.log("=== Basic SAML Linting Demo ===\n");
+  console.log("=== Basic SAML Validation Demo ===\n");
 
   // Method 1: Using the throwing version
-  console.log("1. Using lintSAMLResponse (throws on error):");
+  console.log("1. Using validateSAMLResponse (throws on error):");
   try {
-    await lintSAMLResponse({
+    await validateSAMLResponse({
       response_xml: exampleSAMLResponse,
     });
     console.log("✅ SAML response is valid!");
@@ -23,10 +26,10 @@ async function demonstrateBasicUsage() {
     }
   }
 
-  console.log("\n2. Using safeLintSAMLResponse (returns result object):");
+  console.log("\n2. Using safeValidateSAMLResponse (returns result object):");
 
   // Method 2: Using the safe version that returns a result
-  const result = await safeLintSAMLResponse({
+  const result = await safeValidateSAMLResponse({
     response_xml: exampleSAMLResponse,
   });
 
@@ -41,7 +44,7 @@ async function demonstrateBasicUsage() {
   console.log("\n3. Demonstrating error handling:");
 
   try {
-    await lintSAMLResponse({
+    await validateSAMLResponse({
       response_xml: "", // Empty response to trigger validation error
     });
   } catch (error) {

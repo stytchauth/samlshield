@@ -36,7 +36,7 @@ Each test case is defined in a `.test.json` file with the following structure:
 
 - `name`: Human-readable test name (optional, defaults to file path)
 - `description`: Detailed description of the test case
-- `input`: Input parameters passed to the linting function
+- `input`: Input parameters passed to the validation function
 - `shouldSucceed`: Whether the test should pass (true) or fail (false)
 - `expectedError`: Substring that should appear in error message (for failing tests)
 - `expectedErrorCode`: Expected error code for failing tests

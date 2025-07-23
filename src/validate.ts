@@ -6,11 +6,11 @@ import {
 } from "./errors";
 import { createSelector, Selector, xmlBase64ToDOM } from "./xml";
 
-export type LintArgs = {
+export type ValidateArgs = {
   response_xml: string;
 };
 
-export type LintResult = {
+export type ValidateResult = {
   valid: boolean;
   errors?: string[];
 };
@@ -32,15 +32,15 @@ function validateSAMLResponseStructure(selector: Selector): void {
 }
 
 /**
- * Lints a SAML response for security vulnerabilities and structural validity
+ * Validates a SAML response for security vulnerabilities and structural validity
  *
- * @param options - Configuration options for linting
- * @returns Promise that resolves when linting is complete
+ * @param options - Configuration options for validation
+ * @returns Promise that resolves when validation is complete
  * @throws Various error types for different validation failures
  */
-export async function lintSAMLResponse({
+export async function validateSAMLResponse({
   response_xml,
-}: LintArgs): Promise<void> {
+}: ValidateArgs): Promise<void> {
   if (!response_xml) {
     throw new ValidationError("missing required field: SAMLResponse");
   }
@@ -162,16 +162,16 @@ const xpathForSignature = (nodeID: string) => {
 };
 
 /**
- * A safer wrapper around lintSAMLResponse that returns a result object instead of throwing
+ * A safer wrapper around validateSAMLResponse that returns a result object instead of throwing
  *
- * @param options - Configuration options for linting
- * @returns LintResult object indicating success/failure and any issues found
+ * @param options - Configuration options for validation
+ * @returns ValidateResult object indicating success/failure and any issues found
  */
-export async function safeLintSAMLResponse(
-  options: LintArgs,
-): Promise<LintResult> {
+export async function safeValidateSAMLResponse(
+  options: ValidateArgs,
+): Promise<ValidateResult> {
   try {
-    await lintSAMLResponse(options);
+    await validateSAMLResponse(options);
     return {
       valid: true,
     };

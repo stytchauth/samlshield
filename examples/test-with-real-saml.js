@@ -1,4 +1,4 @@
-const { lintSAMLResponse } = require("../dist/index.js");
+const { validateSAMLResponse } = require("../dist/index.js");
 
 // Real SAML response from test data (base64 encoded)
 const realSAMLResponse = Buffer.from(
@@ -47,7 +47,7 @@ async function testWithRealSAML() {
 
   try {
     console.log("Testing valid SAML response structure...");
-    await lintSAMLResponse({
+    await validateSAMLResponse({
       response_xml: realSAMLResponse,
     });
     console.log("✅ Real SAML response passed all security checks!");
@@ -69,7 +69,7 @@ async function testWithRealSAML() {
 
   try {
     console.log("Testing SAML response with malicious XML comments...");
-    await lintSAMLResponse({
+    await validateSAMLResponse({
       response_xml: maliciousSAMLWithComments,
     });
     console.log("❌ This should not happen - malicious SAML was accepted!");

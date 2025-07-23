@@ -1,24 +1,24 @@
 const {
-  lintSAMLResponse,
-  safeLintSAMLResponse,
+  validateSAMLResponse,
+  safeValidateSAMLResponse,
   ValidationError,
 } = require("../dist/index.js");
 
 describe("SAML Shield Basic Tests", () => {
   test("should throw ValidationError for empty response", async () => {
-    await expect(lintSAMLResponse({ response_xml: "" })).rejects.toThrow(
+    await expect(validateSAMLResponse({ response_xml: "" })).rejects.toThrow(
       "missing required field: SAMLResponse",
     );
   });
 
   test("should throw ValidationError for missing response_xml", async () => {
-    await expect(lintSAMLResponse({})).rejects.toThrow(
+    await expect(validateSAMLResponse({})).rejects.toThrow(
       "missing required field: SAMLResponse",
     );
   });
 
-  test("safeLintSAMLResponse should return error object instead of throwing", async () => {
-    const result = await safeLintSAMLResponse({ response_xml: "" });
+  test("safeValidateSAMLResponse should return error object instead of throwing", async () => {
+    const result = await safeValidateSAMLResponse({ response_xml: "" });
 
     expect(result.valid).toBe(false);
     expect(result.errors).toHaveLength(1);
@@ -31,7 +31,7 @@ describe("SAML Shield Basic Tests", () => {
     ).toString("base64");
 
     await expect(
-      lintSAMLResponse({ response_xml: invalidXML }),
+      validateSAMLResponse({ response_xml: invalidXML }),
     ).rejects.toThrow("document does not contain a SAML Response element");
   });
 });

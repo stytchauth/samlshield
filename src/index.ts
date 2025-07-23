@@ -9,13 +9,13 @@
  * - Signature validation bypass
  */
 
-// Main linting functions
+// Main validation functions
 export {
-  lintSAMLResponse,
-  safeLintSAMLResponse,
-  LintArgs,
-  LintResult,
-} from "./lint";
+  validateSAMLResponse,
+  safeValidateSAMLResponse,
+  ValidateArgs,
+  ValidateResult,
+} from "./validate";
 
 // XML utilities
 export {

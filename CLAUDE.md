@@ -23,7 +23,7 @@ When adding tests, use the contract testing pattern:
 
 ### Core Components
 
-- `src/lint.ts` - Main SAML validation logic with `lintSAMLResponse()` and `safeLintSAMLResponse()`
+- `src/validate.ts` - Main SAML validation logic with `validateSAMLResponse()` and `safeValidateSAMLResponse()`
 - `src/xml.ts` - XML parsing utilities with XPath selectors and SAML namespace support
 - `src/errors.ts` - Comprehensive error class hierarchy for different validation failures
 - `src/index.ts` - Public API exports

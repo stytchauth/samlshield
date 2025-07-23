@@ -1,5 +1,5 @@
 import path from "path";
-import { lintSAMLResponse, safeLintSAMLResponse } from "../../src";
+import { validateSAMLResponse, safeValidateSAMLResponse } from "../../src";
 import { ContractTestLoader } from "./loader";
 
 describe("SAML Shield Contract Tests", () => {
@@ -20,10 +20,10 @@ describe("SAML Shield Contract Tests", () => {
       if (testCase.shouldSucceed) {
         // Test should pass without throwing
         try {
-          await lintSAMLResponse(input);
+          await validateSAMLResponse(input);
 
           // Also test the safe version
-          const result = await safeLintSAMLResponse(input);
+          const result = await safeValidateSAMLResponse(input);
           expect(result.valid).toBe(true);
         } catch (error) {
           const errorMessage =
@@ -38,7 +38,7 @@ describe("SAML Shield Contract Tests", () => {
         let thrownError: any = null;
 
         try {
-          await lintSAMLResponse(input);
+          await validateSAMLResponse(input);
           throw new Error(
             `Test case "${testCase.name}" should have failed but succeeded`,
           );
@@ -47,7 +47,7 @@ describe("SAML Shield Contract Tests", () => {
         }
 
         // Test safe version returns error
-        const result = await safeLintSAMLResponse(input);
+        const result = await safeValidateSAMLResponse(input);
         expect(result.valid).toBe(false);
         expect(result.errors).toBeDefined();
         expect(result.errors!.length).toBeGreaterThan(0);

@@ -1,6 +1,6 @@
 # samlshield
 
-A Node.js library for linting and validating SAML responses. This library provides security-first SAML validation to protect against common vulnerabilities.
+A Node.js library for validating SAML responses. This library provides security-first SAML validation to protect against common vulnerabilities.
 
 ## Features
 
@@ -29,11 +29,14 @@ yarn hooks # registers Git hooks locally
 ## Quick Start
 
 ```javascript
-import { lintSAMLResponse, safeLintSAMLResponse } from "@stytch/samlshield";
+import {
+  validateSAMLResponse,
+  safeValidateSAMLResponse,
+} from "@stytch/samlshield";
 
 // Basic usage - throws errors on validation failure
 try {
-  await lintSAMLResponse({
+  await validateSAMLResponse({
     response_xml: "base64-encoded-saml-response",
   });
   console.log("SAML response is valid!");
@@ -42,7 +45,7 @@ try {
 }
 
 // Safe usage - returns result object instead of throwing
-const result = await safeLintSAMLResponse({
+const result = await safeValidateSAMLResponse({
   response_xml: "base64-encoded-saml-response",
 });
 
@@ -55,9 +58,9 @@ if (result.valid) {
 
 ## API Reference
 
-### `lintSAMLResponse(options: LintArgs): Promise<void>`
+### `validateSAMLResponse(options: ValidateArgs): Promise<void>`
 
-Main linting function that validates a SAML response for security vulnerabilities.
+Main validation function that validates a SAML response for security vulnerabilities.
 
 **Parameters:**
 
@@ -70,9 +73,9 @@ Main linting function that validates a SAML response for security vulnerabilitie
 - `SAMLExpectedAtLeastOneSignatureError`: When neither response nor assertion is signed
 - `SAMLResponseFailureError`: When the SAML response indicates authentication failure
 
-### `safeLintSAMLResponse(options: LintArgs): Promise<LintResult>`
+### `safeValidateSAMLResponse(options: ValidateArgs): Promise<ValidateResult>`
 
-Wrapper around `lintSAMLResponse` that returns a result object instead of throwing.
+Wrapper around `validateSAMLResponse` that returns a result object instead of throwing.
 
 **Returns:**
 
