@@ -26,7 +26,8 @@ function performStringLevelValidation(xmlString: string): void {
   const decoded = Buffer.from(xmlString, "base64").toString();
 
   // Block DOCTYPE at string level, but allow entity-related DOCTYPEs to be handled by XML parser
-  // for more specific error messages about external entities
+  // for more specific error messages about external entities. This ensures DOCTYPEs are blocked
+  // anywhere they appear, while preserving proper entity validation error messages.
   if (decoded.includes("<!DOCTYPE") && !decoded.includes("<!ENTITY")) {
     throw new XMLValidationError("DOCTYPE detected and blocked");
   }
@@ -52,25 +53,71 @@ function validateDocumentStructure(dom: Node): void {
  * Validate element counts to prevent structure manipulation attacks
  */
 function validateElementCounts(selector: Selector): void {
-  // Ensure exactly one Response element
-  const responseElements = selector.selectElements("//saml2p:Response");
-  if (responseElements.length !== 1) {
+  // Ensure exactly one Response element using liberal->strict comparison
+  const responseElementsLiberal = selector.selectElements(
+    "//*[local-name()='Response']",
+  );
+  const responseElementsStrict = selector.selectElements("./saml2p:Response");
+
+  if (responseElementsLiberal.length !== 1) {
     throw new XMLValidationError(
-      `Found ${responseElements.length} Response elements. Only one allowed`,
+      `Found ${responseElementsLiberal.length} Response elements. Only one allowed`,
     );
   }
 
-  // Ensure exactly one Assertion or EncryptedAssertion (but not both)
-  const assertions = selector.selectElements("//*[local-name()='Assertion']");
-  const encryptedAssertions = selector.selectElements(
+  // Ensure liberal search finds same element as strict search
+  if (
+    responseElementsStrict.length !== 1 ||
+    responseElementsLiberal[0] !== responseElementsStrict[0]
+  ) {
+    throw new XMLValidationError(
+      "Unexpected Response element location - found Response element outside expected location",
+    );
+  }
+
+  // Ensure exactly one Assertion or EncryptedAssertion (but not both) using liberal->strict comparison
+  const assertionsLiberal = selector.selectElements(
+    "//*[local-name()='Assertion']",
+  );
+  const encryptedAssertionsLiberal = selector.selectElements(
     "//*[local-name()='EncryptedAssertion']",
   );
-  const totalAssertions = assertions.length + encryptedAssertions.length;
+  const totalAssertions =
+    assertionsLiberal.length + encryptedAssertionsLiberal.length;
 
   if (totalAssertions !== 1) {
     throw new XMLValidationError(
       `Found ${totalAssertions} of Assertions/EncryptedAssertion elements. Only one allowed`,
     );
+  }
+
+  // Check location of assertion/encrypted assertion - they should be in Response
+  if (assertionsLiberal.length === 1) {
+    const assertionStrict = selector.selectElements(
+      "./saml2p:Response/saml:Assertion",
+    );
+    if (
+      assertionStrict.length !== 1 ||
+      assertionsLiberal[0] !== assertionStrict[0]
+    ) {
+      throw new XMLValidationError(
+        "Unexpected assertion location - assertion confusion attack detected",
+      );
+    }
+  }
+
+  if (encryptedAssertionsLiberal.length === 1) {
+    const encryptedAssertionStrict = selector.selectElements(
+      "./saml2p:Response/saml:EncryptedAssertion",
+    );
+    if (
+      encryptedAssertionStrict.length !== 1 ||
+      encryptedAssertionsLiberal[0] !== encryptedAssertionStrict[0]
+    ) {
+      throw new XMLValidationError(
+        "Unexpected encrypted assertion location - assertion confusion attack detected",
+      );
+    }
   }
 
   // Block forbidden elements that shouldn't appear in responses
@@ -87,43 +134,15 @@ function validateElementCounts(selector: Selector): void {
   ];
 
   forbiddenElements.forEach((elementName) => {
-    const elements = selector.selectElements(
+    const elementsLiberal = selector.selectElements(
       `//*[local-name()='${elementName}']`,
     );
-    if (elements.length > 0) {
+    if (elementsLiberal.length > 0) {
       throw new XMLValidationError(
-        `Found ${elements.length} ${elementName} elements. None allowed in SAML responses`,
+        `Found ${elementsLiberal.length} ${elementName} elements. None allowed in SAML responses`,
       );
     }
   });
-}
-
-/**
- * Validate assertion location to prevent assertion confusion attacks
- */
-function validateAssertionLocation(selector: Selector): void {
-  const assertions = selector.selectElements("//*[local-name()='Assertion']");
-
-  if (assertions.length > 0) {
-    // Find the assertion and verify it's in the expected location
-    const foundAssertion = assertions[0];
-    try {
-      const expectedAssertion = selector.selectOptionalSingleElement(
-        "//saml2p:Response/saml:Assertion",
-      );
-
-      if (!expectedAssertion || foundAssertion !== expectedAssertion) {
-        throw new XMLValidationError(
-          "Unexpected assertion location - assertion confusion attack detected",
-        );
-      }
-    } catch (error) {
-      // If we can't find the assertion in the expected location, that's suspicious
-      throw new XMLValidationError(
-        "Unexpected assertion location - assertion confusion attack detected",
-      );
-    }
-  }
 }
 
 /**
@@ -309,15 +328,29 @@ function validateTransforms(selector: Selector, signatureIndex: number): void {
 }
 
 function validateSAMLResponseStructure(selector: Selector): void {
-  const responseElements = selector.selectElements("//saml2p:Response");
-  if (responseElements.length === 0) {
+  // Use liberal search to find all Response elements anywhere
+  const responseElementsLiberal = selector.selectElements(
+    "//*[local-name()='Response']",
+  );
+  if (responseElementsLiberal.length === 0) {
     throw new XMLValidationError(
       "document does not contain a SAML Response element",
     );
   }
-  if (responseElements.length > 1) {
+  if (responseElementsLiberal.length > 1) {
     throw new XMLValidationError(
       "document contains multiple SAML Response elements",
+    );
+  }
+
+  // Use strict search to ensure Response is at root level
+  const responseElementsStrict = selector.selectElements("./saml2p:Response");
+  if (
+    responseElementsStrict.length !== 1 ||
+    responseElementsLiberal[0] !== responseElementsStrict[0]
+  ) {
+    throw new XMLValidationError(
+      "Response element found but not at expected root location",
     );
   }
 }
@@ -350,9 +383,6 @@ export async function validateSAMLResponse({
 
   // Validate element counts to prevent structure manipulation
   validateElementCounts(selector);
-
-  // Validate assertion location to prevent confusion attacks
-  validateAssertionLocation(selector);
 
   const response_id = selector.selectSingleAttribute(
     "//saml2p:Response/@ID",
