@@ -1,0 +1,10 @@
+{
+  "name": "Invalid Transform Algorithm - Transform Validation",
+  "description": "Should detect and block invalid transform algorithms",
+  "input": {
+    "response_xml": "!embed:base64:file://invalid_transform_algorithm.xml"
+  },
+  "shouldSucceed": false,
+  "expectedError": "Unexpected transform algorithm: http://malicious.com/evil-transform",
+  "expectedErrorCode": "XML_VALIDATION_ERROR"
+}

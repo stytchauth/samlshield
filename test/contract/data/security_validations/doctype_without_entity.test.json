@@ -1,0 +1,10 @@
+{
+  "name": "DOCTYPE without Entity - String Level Validation",
+  "description": "Should detect and block DOCTYPE declarations without entities at string level",
+  "input": {
+    "response_xml": "!embed:base64:file://doctype_without_entity.xml"
+  },
+  "shouldSucceed": false,
+  "expectedError": "DOCTYPE detected and blocked",
+  "expectedErrorCode": "XML_VALIDATION_ERROR"
+}
