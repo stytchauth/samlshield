@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE saml [<!ENTITY xxe SYSTEM "file:///etc/passwd">]>
+<saml2p:Response Destination="http://localhost:5001/callback" ID="id123" IssueInstant="2022-11-17T22:15:54.006Z" Version="2.0" xmlns:saml2p="urn:oasis:names:tc:SAML:2.0:protocol">
+  <saml2:Issuer xmlns:saml2="urn:oasis:names:tc:SAML:2.0:assertion">http://www.test.com/issuer</saml2:Issuer>
+  <saml2p:Status><saml2p:StatusCode Value="urn:oasis:names:tc:SAML:2.0:status:Success"/></saml2p:Status>
+  <saml2:Assertion ID="id456" IssueInstant="2022-11-17T22:15:54.006Z" Version="2.0" xmlns:saml2="urn:oasis:names:tc:SAML:2.0:assertion">
+    <saml2:Issuer>http://www.test.com/issuer</saml2:Issuer>
+    <saml2:Subject>
+      <saml2:NameID>&xxe;</saml2:NameID>
+    </saml2:Subject>
+  </saml2:Assertion>
+</saml2p:Response>

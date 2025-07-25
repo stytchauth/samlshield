@@ -1,0 +1,10 @@
+{
+  "name": "Multiple Assertions Attack",
+  "description": "Should fail validateElementCounts due to multiple assertion elements",
+  "comment": "Tests that validateElementCounts blocks multiple assertions",
+  "input": {
+    "response_xml": "!embed:base64:file://multiple_assertions_attack.xml"
+  },
+  "shouldSucceed": false,
+  "expectedError": "Found 2 of Assertions/EncryptedAssertion elements. Only one allowed"
+}

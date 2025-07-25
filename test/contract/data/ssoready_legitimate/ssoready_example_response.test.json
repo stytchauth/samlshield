@@ -1,0 +1,9 @@
+{
+  "name": "SSO Ready Example Response",
+  "description": "Should pass validation for legitimate SAML response structure (inspired by ssoready/ssoready repository patterns)",
+  "comment": "Test data patterns inspired by ssoready/ssoready repository (https://github.com/ssoready/ssoready - MIT licensed). This verifies that legitimate SAML responses from various providers pass all security validations.",
+  "input": {
+    "response_xml": "!embed:base64:file://ssoready_example_response.xml"
+  },
+  "shouldSucceed": true
+}

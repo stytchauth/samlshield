@@ -1,0 +1,10 @@
+{
+  "name": "Forbidden AuthnRequest Attack",
+  "description": "Should fail validateElementCounts due to forbidden AuthnRequest element",
+  "comment": "Tests that validateElementCounts blocks forbidden elements in responses",
+  "input": {
+    "response_xml": "!embed:base64:file://forbidden_authnrequest_attack.xml"
+  },
+  "shouldSucceed": false,
+  "expectedError": "Found 1 AuthnRequest elements. None allowed in SAML responses"
+}

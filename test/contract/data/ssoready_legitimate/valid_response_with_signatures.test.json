@@ -1,0 +1,9 @@
+{
+  "name": "Valid Response with Signatures",
+  "description": "Should pass validation for properly structured SAML response with valid signatures",
+  "comment": "Test data inspired by ssoready/ssoready repository patterns (https://github.com/ssoready/ssoready - MIT licensed)",
+  "input": {
+    "response_xml": "!embed:base64:file://valid_response_with_signatures.xml"
+  },
+  "shouldSucceed": true
+}

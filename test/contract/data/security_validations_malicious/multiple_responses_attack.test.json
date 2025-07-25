@@ -1,0 +1,10 @@
+{
+  "name": "Multiple Responses Attack - validateSAMLResponseStructure",
+  "description": "Should fail validateSAMLResponseStructure due to multiple response elements",
+  "comment": "Tests that validateSAMLResponseStructure blocks multiple response elements",
+  "input": {
+    "response_xml": "!embed:base64:file://multiple_responses_attack.xml"
+  },
+  "shouldSucceed": false,
+  "expectedError": "document contains multiple SAML Response elements"
+}

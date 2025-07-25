@@ -1,0 +1,10 @@
+{
+  "name": "DOCTYPE Simple Attack - performStringLevelValidation",
+  "description": "Should fail performStringLevelValidation due to simple DOCTYPE declaration without entities",
+  "comment": "Tests that performStringLevelValidation blocks simple DOCTYPE declarations",
+  "input": {
+    "response_xml": "!embed:base64:file://doctype_simple_attack.xml"
+  },
+  "shouldSucceed": false,
+  "expectedError": "DOCTYPE detected and blocked"
+}

@@ -1,0 +1,10 @@
+{
+  "name": "Invalid Canonicalization Attack",
+  "description": "Should fail validateCanonicalizationMethod due to invalid canonicalization algorithm",
+  "comment": "Tests that validateCanonicalizationMethod blocks invalid canonicalization algorithms",
+  "input": {
+    "response_xml": "!embed:base64:file://invalid_canonicalization_attack.xml"
+  },
+  "shouldSucceed": false,
+  "expectedError": "Invalid CanonicalizationMethod algorithm"
+}
