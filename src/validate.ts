@@ -415,7 +415,6 @@ function validateSignatureProfiles(parsed: ParsedSAMLResponse): void {
       validateIndividualSignatureProfile(
         foundSignature,
         parsed.responseElement,
-        parsed,
       );
     } else if (
       foundSignature &&
@@ -424,7 +423,6 @@ function validateSignatureProfiles(parsed: ParsedSAMLResponse): void {
       validateIndividualSignatureProfile(
         foundSignature,
         parsed.assertionElement!,
-        parsed,
       );
     } else {
       throw new XMLValidationError(
@@ -485,7 +483,23 @@ function validateIndividualSignatureProfile(
   // Liberal search first
   const foundSignedInfoNodes = signatureSelector.selectElements(".//*[local-name()='SignedInfo']");
   if (foundSignedInfoNodes.length !== 1) {
-    throw new XMLValidationError(`Expected exactly one SignedInfo element, found ${foundSignedInfoNodes.length}`);
+    if (foundSignedInfoNodes.length > 1) {
+      // Check if these are direct children of this signature (single signature case)
+      const directSignedInfoChildren = signatureSelector.selectElements("./ds:SignedInfo");
+      if (directSignedInfoChildren.length > 1) {
+        // Multiple SignedInfo as direct children - let the later check handle this
+        // Skip the strict validation and go directly to the specific error at the end
+        const multipleSignatures = signatureSelector.selectElements("./ds:SignedInfo[2]");
+        if (multipleSignatures.length > 0) {
+          throw new XMLValidationError("response contained multiple SignedInfo elements in a single signature");
+        }
+      } else {
+        // Multiple SignedInfo found but not direct children - document level issue
+        throw new XMLValidationError("response contained multiple SignedInfo elements");
+      }
+    } else {
+      throw new XMLValidationError(`Expected exactly one SignedInfo element, found ${foundSignedInfoNodes.length}`);
+    }
   }
 
   // Strict search
@@ -522,7 +536,7 @@ function validateIndividualSignatureProfile(
   // Now reference logic validation
   // Most expressive URI attribute == Our expected URI attribute
   const foundUriAttributes = signatureSelector.selectAttributes('.//@*[local-name()="URI"]');
-  const expectedUriAttribute = signedInfoSelector.selectOptionalSingleAttribute("./@URI");
+  const expectedUriAttribute = expectedReferenceNode.getAttributeNode("URI");
   
   if (!expectedUriAttribute) {
     throw new XMLValidationError("No URI attribute");
@@ -534,7 +548,7 @@ function validateIndividualSignatureProfile(
   }
 
   // Verify URI attribute values match
-  const expectedUri = expectedReferenceNode.getAttribute("URI") || "";
+  const expectedUri = expectedUriAttribute.value || "";
   if (expectedUri !== foundUriAttributes[0].value) {
     throw new XMLValidationError("URI attribute is ambiguous");
   }
@@ -559,7 +573,11 @@ function validateIndividualSignatureProfile(
     const dereferencedElements = documentSelector.selectElements(`//*[@ID=${escapedId}]`);
     
     if (dereferencedElements.length !== 1) {
-      throw new XMLValidationError(`Ambiguous reference URI: ${referencedId}, dereferences to ${dereferencedElements.length} elements`);
+      if (dereferencedElements.length === 0) {
+        throw new XMLValidationError(`URI references non-existent ID: ${referencedId}`);
+      } else {
+        throw new XMLValidationError(`Ambiguous reference URI: ${referencedId}, dereferences to ${dereferencedElements.length} elements`);
+      }
     }
 
     // Verify it dereferences to the parent element
