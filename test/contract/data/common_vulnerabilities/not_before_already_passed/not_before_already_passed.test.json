@@ -2,14 +2,13 @@
   "name": "SAML Assertion Not Yet Valid (NotBefore)",
   "description": "Should detect and reject SAML assertions that are not yet valid",
   "comment": [
-    "Test metadata generated from personal Okta acct",
-    "This input is identical to okta_personal_sp_initiated_groups.test.json",
-    "except the timestamp has been shifted back by one day (22-11-16 vs 22-11-17) "
+    "Test with future timestamps - uses XML with NotBefore in the future",
+    "Mock currentTime is set to earlier than NotBefore, so assertion should not yet be valid"
   ],
   "input": {
-    "response_xml": "!embed:base64:file://okta_personal_sp_initiated_groups_response.xml"
+    "response_xml": "!embed:base64:file://future_not_before_response.xml"
   },
-  "skip": true,
+  "mockTime": "2025-07-29T20:00:00.000Z",
   "shouldSucceed": false,
   "expectedError": "SAML assertion not yet valid",
   "expectedErrorCode": "SAML_ASSERTION_NOT_YET_VALID"

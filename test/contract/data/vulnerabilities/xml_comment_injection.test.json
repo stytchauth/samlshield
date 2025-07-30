@@ -4,6 +4,7 @@
   "input": {
     "response_xml": "!embed:base64:file://xml_comment_injection.xml"
   },
+  "mockTime": "2022-11-22T20:25:00Z",
   "shouldSucceed": false,
   "expectedError": "response contained illegal XML comments",
   "expectedErrorCode": "XML_VALIDATION_ERROR"

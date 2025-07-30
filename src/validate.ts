@@ -1,4 +1,6 @@
 import {
+  SAMLAssertionExpiredError,
+  SAMLAssertionNotYetValidError,
   SAMLExpectedAtLeastOneSignatureError,
   SAMLResponseFailureError,
   ValidationError,
@@ -65,6 +67,47 @@ function validateXMLIdentifier(id: string): void {
     throw new XMLValidationError(
       `Invalid XML identifier: ${id}. Must start with letter/underscore and contain only alphanumeric characters, underscores, and hyphens`,
     );
+  }
+}
+
+function validateTimestamps(selector: Selector): void {
+  const now = getCurrentTime();
+
+  // Check Conditions NotBefore and NotOnOrAfter
+  const conditionsNotBefore = selector.selectOptionalSingleAttribute(
+    "//saml:Assertion/saml:Conditions/@NotBefore",
+  );
+  const conditionsNotOnOrAfter = selector.selectOptionalSingleAttribute(
+    "//saml:Assertion/saml:Conditions/@NotOnOrAfter",
+  );
+
+  if (conditionsNotBefore) {
+    const notBeforeTime = new Date(conditionsNotBefore.value).getTime();
+    if (now + CLOCK_SKEW_TOLERANCE_MS < notBeforeTime) {
+      throw new SAMLAssertionNotYetValidError();
+    }
+  }
+
+  if (conditionsNotOnOrAfter) {
+    const notOnOrAfterTime = new Date(conditionsNotOnOrAfter.value).getTime();
+    if (now - CLOCK_SKEW_TOLERANCE_MS > notOnOrAfterTime) {
+      throw new SAMLAssertionExpiredError();
+    }
+  }
+
+  // Check SubjectConfirmationData NotOnOrAfter
+  const subjectConfirmationNotOnOrAfter =
+    selector.selectOptionalSingleAttribute(
+      "//saml:Assertion/saml:Subject/saml:SubjectConfirmation/saml:SubjectConfirmationData/@NotOnOrAfter",
+    );
+
+  if (subjectConfirmationNotOnOrAfter) {
+    const notOnOrAfterTime = new Date(
+      subjectConfirmationNotOnOrAfter.value,
+    ).getTime();
+    if (now - CLOCK_SKEW_TOLERANCE_MS > notOnOrAfterTime) {
+      throw new SAMLAssertionExpiredError();
+    }
   }
 }
 

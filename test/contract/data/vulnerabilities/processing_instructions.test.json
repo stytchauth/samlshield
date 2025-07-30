@@ -4,6 +4,7 @@
   "input": {
     "response_xml": "!embed:base64:file://processing_instructions.xml"
   },
+  "mockTime": "2022-11-04T03:07:29Z",
   "shouldSucceed": false,
   "expectedError": "response contained illegal processing instructions",
   "expectedErrorCode": "XML_VALIDATION_ERROR"

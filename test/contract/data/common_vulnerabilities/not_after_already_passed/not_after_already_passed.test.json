@@ -2,14 +2,13 @@
   "name": "SAML Assertion Expired (NotAfter)",
   "description": "Should detect and reject SAML assertions that have expired",
   "comment": [
-    "Test metadata generated from personal Okta acct",
-    "This input is identical to okta_personal_sp_initiated_groups.test.json",
-    "except the timestamp has been shifted ahead by one day (22-11-18 vs 22-11-17) "
+    "Test with expired timestamps - uses dedicated test that mocks time to day after NotOnOrAfter",
+    "The timestamps in the XML are from 2022-11-17, so with mocked time of day after, they should be expired"
   ],
   "input": {
     "response_xml": "!embed:base64:file://okta_personal_sp_initiated_groups_response.xml"
   },
-  "skip": true,
+  "mockTime": "2022-11-18T22:30:38.917Z",
   "shouldSucceed": false,
   "expectedError": "SAML assertion expired: clocks skewed too much",
   "expectedErrorCode": "SAML_ASSERTION_EXPIRED"

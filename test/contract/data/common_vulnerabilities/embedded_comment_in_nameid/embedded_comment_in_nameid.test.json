@@ -16,6 +16,7 @@
   "input": {
     "response_xml": "!embed:base64:file://comment_in_nameid.xml"
   },
+  "mockTime": "2022-11-04T03:05:00Z",
   "shouldSucceed": false,
   "expectedError": "Invalid input: response contained illegal XML comments",
   "expectedErrorCode": "XML_VALIDATION_ERROR"

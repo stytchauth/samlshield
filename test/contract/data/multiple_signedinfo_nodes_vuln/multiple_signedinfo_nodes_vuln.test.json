@@ -8,6 +8,7 @@
   "input": {
     "response_xml": "!embed:base64:file://poc.xml"
   },
+  "mockTime": "2022-11-04T03:05:00Z",
   "shouldSucceed": false,
   "expectedError": "Invalid input: response contained multiple SignedInfo elements",
   "expectedErrorCode": "XML_VALIDATION_ERROR"

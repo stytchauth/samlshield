@@ -10,5 +10,6 @@
   "input": {
     "response_xml": "!embed:base64:file://sp_initiated_response_signed.xml"
   },
+  "mockTime": "2022-11-22T20:31:07.2390Z",
   "shouldSucceed": true
 }

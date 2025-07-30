@@ -88,3 +88,18 @@ export class SAMLResponseFailureError extends SAMLShieldError {
     );
   }
 }
+
+export class SAMLAssertionExpiredError extends SAMLShieldError {
+  constructor() {
+    super(
+      "SAML assertion expired: clocks skewed too much",
+      "SAML_ASSERTION_EXPIRED",
+    );
+  }
+}
+
+export class SAMLAssertionNotYetValidError extends SAMLShieldError {
+  constructor() {
+    super("SAML assertion not yet valid", "SAML_ASSERTION_NOT_YET_VALID");
+  }
+}
