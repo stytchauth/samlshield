@@ -15,112 +15,619 @@ export type ValidateResult = {
   errors?: string[];
 };
 
+export type ParsedSAMLResponse = {
+  responseElement: Element;
+  assertionElement: Element | null;
+  encryptedAssertionElement: Element | null;
+  responseId: string;
+  assertionId: string | null;
+  isResponseSigned: boolean;
+  isAssertionSigned: boolean;
+  signedResponseElement: Element | null;
+  signedAssertionElement: Element | null;
+};
+
 const SUCCESS_STATUS = "urn:oasis:names:tc:SAML:2.0:status:Success";
 
 /**
+ * Escape XPath attribute values to prevent injection
+ */
+function escapeXPathAttribute(value: string): string {
+  // If the value contains single quotes, we need to use concat() or double quotes
+  if (value.includes("'")) {
+    if (value.includes('"')) {
+      // Value contains both single and double quotes, use concat()
+      const parts = value.split("'");
+      return `concat('${parts.join("', \"'\", '")}')`;
+    } else {
+      // Value contains single quotes but not double quotes
+      return `"${value}"`;
+    }
+  } else {
+    // Value doesn't contain single quotes
+    return `'${value}'`;
+  }
+}
+
+/**
+ * Validate that a string is a safe XML identifier (for ID attributes)
+ */
+function validateXMLIdentifier(id: string): void {
+  if (!id || typeof id !== "string") {
+    throw new XMLValidationError(
+      "Invalid XML identifier: must be non-empty string",
+    );
+  }
+
+  // XML Name production: must start with letter/underscore, followed by name characters
+  // We'll be strict and only allow alphanumeric + underscore/hyphen for safety
+  if (!/^[a-zA-Z0-9_-]*$/.test(id)) {
+    throw new XMLValidationError(
+      `Invalid XML identifier: ${id}. Must start with letter/underscore and contain only alphanumeric characters, underscores, and hyphens`,
+    );
+  }
+}
+
+/**
  * Perform string-level validation before XML parsing
- * This catches DOCTYPE and other string-level security issues
+ * Block all DOCTYPE declarations outright
  */
 function performStringLevelValidation(xmlString: string): void {
   // Decode base64 to get the actual XML string
   const decoded = Buffer.from(xmlString, "base64").toString();
 
-  // Block DOCTYPE at string level, but allow entity-related DOCTYPEs to be handled by XML parser
-  // for more specific error messages about external entities. This ensures DOCTYPEs are blocked
-  // anywhere they appear, while preserving proper entity validation error messages.
-  if (decoded.includes("<!DOCTYPE") && !decoded.includes("<!ENTITY")) {
+  // Check for entity attacks first (more specific)
+  if (decoded.includes("<!ENTITY")) {
+    throw new XMLValidationError("External Entities are forbidden");
+  }
+
+  // Block all other DOCTYPE declarations
+  if (decoded.includes("<!DOCTYPE")) {
     throw new XMLValidationError("DOCTYPE detected and blocked");
   }
 }
 
 /**
- * Validate the document structure and node types
- * Only allow element and text nodes, block exotic node types
+ * Manually traverse all nodes to block forbidden node types
+ * This is done as the first step after parsing for security
  */
-function validateDocumentStructure(dom: Node): void {
-  // Check for DTD in parsed document
-  const document = dom.ownerDocument || (dom as Document);
+function blockForbiddenNodes(node: Node): void {
+  // Block DOCTYPE nodes at document level
+  const document = node.ownerDocument || (node as Document);
   if (document.doctype) {
     throw new XMLValidationError("Payload contains doctype");
   }
 
-  // Note: We don't traverse nodes here to block comments/processing instructions
-  // because the main validation function handles those with specific error messages
-  // This is reserved for other exotic node types that shouldn't exist
+  // Recursively traverse all nodes
+  function traverseNode(currentNode: Node): void {
+    // Block forbidden node types
+    switch (currentNode.nodeType) {
+      case currentNode.COMMENT_NODE:
+        throw new XMLValidationError(
+          "response contained illegal XML comments",
+          {
+            comment: currentNode.nodeValue,
+            location: currentNode.parentNode?.nodeName || "unknown",
+          },
+        );
+
+      case currentNode.PROCESSING_INSTRUCTION_NODE:
+        // Allow processing instructions only at document level (like XML declaration)
+        if (
+          currentNode.parentNode &&
+          currentNode.parentNode.nodeType !== currentNode.DOCUMENT_NODE
+        ) {
+          throw new XMLValidationError(
+            "response contained illegal processing instructions",
+            {
+              processingInstruction: currentNode.nodeValue,
+              location: currentNode.parentNode?.nodeName || "unknown",
+            },
+          );
+        }
+        break;
+
+      case currentNode.DOCUMENT_TYPE_NODE:
+        throw new XMLValidationError("Document type nodes are forbidden");
+
+      case currentNode.ENTITY_NODE:
+      case currentNode.ENTITY_REFERENCE_NODE:
+        throw new XMLValidationError("External Entities are forbidden");
+
+      case currentNode.NOTATION_NODE:
+        throw new XMLValidationError("Notation nodes are forbidden");
+
+      // Allow these node types
+      case currentNode.ELEMENT_NODE:
+      case currentNode.ATTRIBUTE_NODE:
+      case currentNode.TEXT_NODE:
+      case currentNode.CDATA_SECTION_NODE:
+      case currentNode.DOCUMENT_NODE:
+      case currentNode.DOCUMENT_FRAGMENT_NODE:
+        break;
+
+      default:
+        throw new XMLValidationError(
+          `Unknown or forbidden node type: ${currentNode.nodeType}`,
+        );
+    }
+
+    // Recursively check child nodes
+    if (currentNode.childNodes) {
+      for (let i = 0; i < currentNode.childNodes.length; i++) {
+        traverseNode(currentNode.childNodes[i]);
+      }
+    }
+  }
+
+  traverseNode(node);
 }
 
 /**
- * Validate element counts to prevent structure manipulation attacks
+ * Parse and identify the core SAML elements and their signature status
+ * Uses strict XPath expressions and validates liberal vs strict results
  */
-function validateElementCounts(selector: Selector): void {
-  // Ensure exactly one Response element using liberal->strict comparison
+function parseSAMLResponseStructure(selector: Selector): ParsedSAMLResponse {
+  // Find the Response element using strict XPath
+  const responseElementsStrict = selector.selectElements("./saml2p:Response");
+
+  // Also check with liberal XPath to ensure they match
   const responseElementsLiberal = selector.selectElements(
     "//*[local-name()='Response']",
   );
-  const responseElementsStrict = selector.selectElements("./saml2p:Response");
 
-  if (responseElementsLiberal.length !== 1) {
+  if (responseElementsLiberal.length > 1) {
     throw new XMLValidationError(
-      `Found ${responseElementsLiberal.length} Response elements. Only one allowed`,
+      "document contains multiple SAML Response elements",
     );
   }
 
-  // Ensure liberal search finds same element as strict search
+  if (responseElementsLiberal.length === 0) {
+    throw new XMLValidationError(
+      "document does not contain a SAML Response element",
+    );
+  }
+
+  // Validate liberal vs strict matching
+  if (responseElementsLiberal.length !== responseElementsStrict.length) {
+    throw new XMLValidationError(
+      "Response element location mismatch - potential structure manipulation",
+    );
+  }
+
+  if (responseElementsStrict.length !== 1) {
+    if (responseElementsLiberal.length === 0) {
+      throw new XMLValidationError(
+        "document does not contain a SAML Response element",
+      );
+    }
+    if (responseElementsLiberal.length > 1) {
+      throw new XMLValidationError(
+        "document contains multiple SAML Response elements",
+      );
+    }
+    throw new XMLValidationError(
+      "Response element found but not at expected root location",
+    );
+  }
+
+  // Verify liberal and strict find the same element
+  if (responseElementsLiberal[0] !== responseElementsStrict[0]) {
+    throw new XMLValidationError(
+      "Response element location mismatch - found Response outside expected location",
+    );
+  }
+
+  const responseElement = responseElementsStrict[0];
+  const responseId = responseElement.getAttribute("ID");
+  if (!responseId) {
+    throw new XMLValidationError(
+      "Response element missing required ID attribute",
+    );
+  }
+
+  // Validate the ID is safe
+  validateXMLIdentifier(responseId);
+
+  // Find assertion or encrypted assertion within the response - assertions should be direct children
+  const responseSelector = createSelector(responseElement);
+  const assertionsStrict = responseSelector.selectElements("./saml:Assertion");
+  const encryptedAssertionsStrict = responseSelector.selectElements(
+    "./saml:EncryptedAssertion",
+  );
+
+  // Validate with liberal search
+  const assertionsLiberal = responseSelector.selectElements(
+    ".//*[local-name()='Assertion']",
+  );
+  const encryptedAssertionsLiberal = responseSelector.selectElements(
+    ".//*[local-name()='EncryptedAssertion']",
+  );
+
+  // Ensure liberal and strict results match
   if (
-    responseElementsStrict.length !== 1 ||
-    responseElementsLiberal[0] !== responseElementsStrict[0]
+    assertionsLiberal.length !== assertionsStrict.length ||
+    encryptedAssertionsLiberal.length !== encryptedAssertionsStrict.length
   ) {
     throw new XMLValidationError(
-      "Unexpected Response element location - found Response element outside expected location",
+      "Assertion element location mismatch - potential structure manipulation",
     );
   }
 
-  // Ensure exactly one Assertion or EncryptedAssertion (but not both) using liberal->strict comparison
-  const assertionsLiberal = selector.selectElements(
-    "//*[local-name()='Assertion']",
-  );
-  const encryptedAssertionsLiberal = selector.selectElements(
-    "//*[local-name()='EncryptedAssertion']",
-  );
   const totalAssertions =
-    assertionsLiberal.length + encryptedAssertionsLiberal.length;
-
+    assertionsStrict.length + encryptedAssertionsStrict.length;
   if (totalAssertions !== 1) {
     throw new XMLValidationError(
       `Found ${totalAssertions} of Assertions/EncryptedAssertion elements. Only one allowed`,
     );
   }
 
-  // Check location of assertion/encrypted assertion - they should be in Response
-  if (assertionsLiberal.length === 1) {
-    const assertionStrict = selector.selectElements(
-      "./saml2p:Response/saml:Assertion",
-    );
-    if (
-      assertionStrict.length !== 1 ||
-      assertionsLiberal[0] !== assertionStrict[0]
-    ) {
+  let assertionElement: Element | null = null;
+  let encryptedAssertionElement: Element | null = null;
+  let assertionId: string | null = null;
+
+  if (assertionsStrict.length === 1) {
+    // Verify liberal and strict find the same element
+    if (assertionsLiberal[0] !== assertionsStrict[0]) {
       throw new XMLValidationError(
-        "Unexpected assertion location - assertion confusion attack detected",
+        "Assertion element location mismatch - assertion confusion attack detected",
       );
     }
-  }
 
-  if (encryptedAssertionsLiberal.length === 1) {
-    const encryptedAssertionStrict = selector.selectElements(
-      "./saml2p:Response/saml:EncryptedAssertion",
-    );
-    if (
-      encryptedAssertionStrict.length !== 1 ||
-      encryptedAssertionsLiberal[0] !== encryptedAssertionStrict[0]
-    ) {
+    assertionElement = assertionsStrict[0];
+    assertionId = assertionElement.getAttribute("ID");
+    if (!assertionId) {
       throw new XMLValidationError(
-        "Unexpected encrypted assertion location - assertion confusion attack detected",
+        "Assertion element missing required ID attribute",
       );
     }
+
+    // Validate the ID is safe
+    validateXMLIdentifier(assertionId);
+  } else {
+    // Verify liberal and strict find the same element
+    if (encryptedAssertionsLiberal[0] !== encryptedAssertionsStrict[0]) {
+      throw new XMLValidationError(
+        "EncryptedAssertion element location mismatch - assertion confusion attack detected",
+      );
+    }
+
+    encryptedAssertionElement = encryptedAssertionsStrict[0];
+    // Encrypted assertions don't have IDs we can validate signatures against
   }
 
-  // Block forbidden elements that shouldn't appear in responses
+  // Check signature status by looking for signatures that reference these elements
+  const isResponseSigned = !!selector.selectOptionalSingleElement(
+    createSignatureXPath(responseId),
+  );
+
+  const isAssertionSigned = assertionId
+    ? !!selector.selectOptionalSingleElement(createSignatureXPath(assertionId))
+    : false;
+
+  // Find the actual signed elements (the elements that contain the signatures)
+  let signedResponseElement: Element | null = null;
+  let signedAssertionElement: Element | null = null;
+
+  if (isResponseSigned) {
+    signedResponseElement = responseElement;
+  }
+
+  if (isAssertionSigned && assertionElement) {
+    signedAssertionElement = assertionElement;
+  }
+
+  return {
+    responseElement,
+    assertionElement,
+    encryptedAssertionElement,
+    responseId,
+    assertionId,
+    isResponseSigned,
+    isAssertionSigned,
+    signedResponseElement,
+    signedAssertionElement,
+  };
+}
+
+/**
+ * Validate that at least one element is signed and check response status
+ * Uses strict XPath and validates against liberal search for consistency
+ */
+function validateCoreRequirements(parsed: ParsedSAMLResponse): void {
+  // Require at least one signature
+  if (!parsed.isResponseSigned && !parsed.isAssertionSigned) {
+    throw new SAMLExpectedAtLeastOneSignatureError();
+  }
+
+  // Validate response status - Status should be direct child of Response
+  const responseSelector = createSelector(parsed.responseElement);
+  const statusCodeStrict = responseSelector.selectOptionalSingleAttribute(
+    "./samlp:Status/samlp:StatusCode/@Value",
+  );
+
+  // Also check with liberal search to ensure consistency
+  const statusCodeLiberal = responseSelector.selectOptionalSingleAttribute(
+    ".//*[local-name()='StatusCode']/@Value",
+  );
+
+  if (!statusCodeStrict) {
+    throw new XMLValidationError("Response missing required StatusCode");
+  }
+
+  if (
+    !statusCodeLiberal ||
+    statusCodeStrict.value !== statusCodeLiberal.value
+  ) {
+    throw new XMLValidationError(
+      "StatusCode element location mismatch - potential structure manipulation",
+    );
+  }
+
+  const status = statusCodeStrict.value;
+  if (status !== SUCCESS_STATUS) {
+    const failuresStrict = responseSelector
+      .selectAttributes(
+        "./samlp:Status/samlp:StatusCode/samlp:StatusCode/@Value",
+      )
+      .map((failure) => failure.value);
+
+    throw new SAMLResponseFailureError(
+      parsed.responseId,
+      status,
+      failuresStrict,
+    );
+  }
+}
+
+/**
+ * Validate signature structure and association with parent elements
+ * Implements the Ruby logic to ensure each signature is properly associated with Response/Assertion
+ */
+function validateSignatureProfiles(parsed: ParsedSAMLResponse): void {
+  // Find all signatures in the document using liberal search
+  const documentSelector = createSelector(
+    parsed.responseElement.ownerDocument || parsed.responseElement,
+  );
+  const allSignatures = documentSelector.selectElements(
+    "//*[local-name()='Signature']",
+  );
+
+  // Find expected signatures as direct children of Response and Assertion
+  const responseSelector = createSelector(parsed.responseElement);
+  const expectedResponseSignature =
+    responseSelector.selectOptionalSingleElement("./ds:Signature");
+
+  let expectedAssertionSignature: Element | null = null;
+  if (parsed.assertionElement) {
+    const assertionSelector = createSelector(parsed.assertionElement);
+    expectedAssertionSignature =
+      assertionSelector.selectOptionalSingleElement("./ds:Signature");
+  }
+
+  if (allSignatures.length === 0) {
+    // TODO: Handle empty case because of encrypted assertions?
+    return;
+  } else if (allSignatures.length === 1) {
+    const foundSignature = allSignatures[0];
+
+    if (foundSignature && foundSignature === expectedResponseSignature) {
+      validateIndividualSignatureProfile(
+        foundSignature,
+        parsed.responseElement,
+        parsed,
+      );
+    } else if (
+      foundSignature &&
+      foundSignature === expectedAssertionSignature
+    ) {
+      validateIndividualSignatureProfile(
+        foundSignature,
+        parsed.assertionElement!,
+        parsed,
+      );
+    } else {
+      throw new XMLValidationError(
+        "Found signature is not the direct child of either the Response element or the Assertion element",
+      );
+    }
+  } else if (allSignatures.length === 2) {
+    if (
+      !expectedResponseSignature ||
+      allSignatures[0] !== expectedResponseSignature
+    ) {
+      throw new XMLValidationError(
+        "Unexpected Response Signature - first signature must be direct child of Response",
+      );
+    }
+    if (
+      !expectedAssertionSignature ||
+      allSignatures[1] !== expectedAssertionSignature
+    ) {
+      throw new XMLValidationError(
+        "Unexpected assertion signature - second signature must be direct child of Assertion",
+      );
+    }
+
+    validateIndividualSignatureProfile(
+      allSignatures[0],
+      parsed.responseElement,
+    );
+    validateIndividualSignatureProfile(
+      allSignatures[1],
+      parsed.assertionElement!,
+    );
+  } else {
+    throw new XMLValidationError(
+      `Unexpected number of signatures: ${allSignatures.length}. Expected 0, 1, or 2.`,
+    );
+  }
+}
+
+/**
+ * Validate individual signature profile within its parent element
+ * Uses strict "parse don't validate" approach with explicit liberal vs strict comparisons
+ */
+function validateIndividualSignatureProfile(
+  signature: Element,
+  parentElement: Element
+): void {
+  if (!signature) {
+    throw new XMLValidationError("No signature");
+  }
+  if (!parentElement) {
+    throw new XMLValidationError("No element to check against");
+  }
+
+  const signatureSelector = createSelector(signature);
+  
+  // Expect there to be one and only one SignedInfo
+  // Liberal search first
+  const foundSignedInfoNodes = signatureSelector.selectElements(".//*[local-name()='SignedInfo']");
+  if (foundSignedInfoNodes.length !== 1) {
+    throw new XMLValidationError(`Expected exactly one SignedInfo element, found ${foundSignedInfoNodes.length}`);
+  }
+
+  // Strict search
+  const expectedSignedInfo = signatureSelector.selectOptionalSingleElement("./ds:SignedInfo");
+  if (!expectedSignedInfo) {
+    throw new XMLValidationError("No SignedInfo");
+  }
+
+  // Verify liberal and strict find the same element
+  if (foundSignedInfoNodes[0] !== expectedSignedInfo) {
+    throw new XMLValidationError("Incorrect SignedInfo");
+  }
+
+  // Expect there to be one and only one reference node
+  const signedInfoSelector = createSelector(expectedSignedInfo);
+  
+  // Liberal search for Reference
+  const foundReferenceNodes = signatureSelector.selectElements(".//*[local-name()='Reference']");
+  if (foundReferenceNodes.length !== 1) {
+    throw new XMLValidationError(`Expected exactly one Reference element, found ${foundReferenceNodes.length}`);
+  }
+
+  // Strict search for Reference
+  const expectedReferenceNode = signedInfoSelector.selectOptionalSingleElement("./ds:Reference");
+  if (!expectedReferenceNode) {
+    throw new XMLValidationError("No Reference");
+  }
+
+  // Verify liberal and strict find the same element
+  if (foundReferenceNodes[0] !== expectedReferenceNode) {
+    throw new XMLValidationError("Incorrect Reference");
+  }
+
+  // Now reference logic validation
+  // Most expressive URI attribute == Our expected URI attribute
+  const foundUriAttributes = signatureSelector.selectAttributes('.//@*[local-name()="URI"]');
+  const expectedUriAttribute = signedInfoSelector.selectOptionalSingleAttribute("./@URI");
+  
+  if (!expectedUriAttribute) {
+    throw new XMLValidationError("No URI attribute");
+  }
+
+  // Verify only one URI attribute found and it matches expected
+  if (foundUriAttributes.length !== 1 || expectedUriAttribute !== foundUriAttributes[0]) {
+    throw new XMLValidationError("Incorrect URI attribute found");
+  }
+
+  // Verify URI attribute values match
+  const expectedUri = expectedReferenceNode.getAttribute("URI") || "";
+  if (expectedUri !== foundUriAttributes[0].value) {
+    throw new XMLValidationError("URI attribute is ambiguous");
+  }
+
+  // We want URI to == our parent element
+  // Processing: URIs need to be "#ID" or ""
+  if (expectedUri === "") {
+    // Empty URI should reference root document element
+    const documentRoot = signature.ownerDocument?.documentElement || signature.ownerDocument?.firstChild;
+    if (documentRoot !== parentElement) {
+      throw new XMLValidationError("Doesn't dereference to root parent element (for empty URI)");
+    }
+  } else if (expectedUri.startsWith("#")) {
+    const referencedId = expectedUri.substring(1);
+    
+    // Validate the referenced ID is safe
+    validateXMLIdentifier(referencedId);
+    
+    // Find all elements with this ID in the document
+    const documentSelector = createSelector(signature.ownerDocument || signature);
+    const escapedId = escapeXPathAttribute(referencedId);
+    const dereferencedElements = documentSelector.selectElements(`//*[@ID=${escapedId}]`);
+    
+    if (dereferencedElements.length !== 1) {
+      throw new XMLValidationError(`Ambiguous reference URI: ${referencedId}, dereferences to ${dereferencedElements.length} elements`);
+    }
+
+    // Verify it dereferences to the parent element
+    if (dereferencedElements[0] !== parentElement) {
+      throw new XMLValidationError("Doesn't dereference to parent element");
+    }
+  } else {
+    throw new XMLValidationError(`Malformed URI: ${expectedUri}`);
+  }
+
+  // Next verify the CanonicalizationMethod
+  const foundC14nElements = signatureSelector.selectElements(".//*[local-name()='CanonicalizationMethod']");
+  if (foundC14nElements.length !== 1) {
+    throw new XMLValidationError(`Expected exactly one CanonicalizationMethod, found ${foundC14nElements.length}`);
+  }
+
+  const expectedC14nElement = signedInfoSelector.selectOptionalSingleElement("./ds:CanonicalizationMethod");
+  if (!expectedC14nElement) {
+    throw new XMLValidationError("No CanonicalizationMethod");
+  }
+
+  // Verify liberal and strict find the same element
+  if (foundC14nElements[0] !== expectedC14nElement) {
+    throw new XMLValidationError("Unexpected CanonicalizationMethod");
+  }
+
+  const c14nAlgorithm = expectedC14nElement.getAttribute("Algorithm");
+  const allowedC14nAlgorithms = [
+    "http://www.w3.org/2001/10/xml-exc-c14n#",
+    "http://www.w3.org/2001/10/xml-exc-c14n#WithComments",
+  ];
+
+  if (!c14nAlgorithm || !allowedC14nAlgorithms.includes(c14nAlgorithm)) {
+    throw new XMLValidationError(`Invalid CanonicalizationMethod algorithm: ${c14nAlgorithm}`);
+  }
+
+  // Next verify the Transforms
+  const foundTransforms = signatureSelector.selectElements(".//*[local-name()='Transform']");
+  if (foundTransforms.length > 2) {
+    throw new XMLValidationError(`Too many transforms: ${foundTransforms.length}. Maximum 2 allowed`);
+  }
+
+  // Next verify the Transform Algorithm
+  const allowedTransforms = [
+    "http://www.w3.org/2000/09/xmldsig#enveloped-signature",
+    "http://www.w3.org/2001/10/xml-exc-c14n#",
+    "http://www.w3.org/2001/10/xml-exc-c14n#WithComments",
+  ];
+
+  foundTransforms.forEach((transform) => {
+    const transformAlg = transform.getAttribute("Algorithm");
+    if (!transformAlg || !allowedTransforms.includes(transformAlg)) {
+      throw new XMLValidationError(`Unexpected transform algorithm: ${transformAlg}`);
+    }
+  });
+
+  // Check for multiple SignedInfo nodes within this signature (redundant but keeping for completeness)
+  const multipleSignatures = signatureSelector.selectElements("./ds:SignedInfo[2]");
+  if (multipleSignatures.length > 0) {
+    throw new XMLValidationError("response contained multiple SignedInfo elements in a single signature");
+  }
+}
+
+/**
+ * Validate forbidden elements within verified content only
+ * Uses strict XPath and ensures liberal/strict consistency
+ */
+function validateForbiddenElementsInVerifiedContent(dom: Node): void {
   const forbiddenElements = [
     "EntityDescriptor",
     "AuthnRequest",
@@ -133,230 +640,41 @@ function validateElementCounts(selector: Selector): void {
     "NameIDMappingResponseType",
   ];
 
+  const elementSelector = createSelector(dom);
+
   forbiddenElements.forEach((elementName) => {
-    const elementsLiberal = selector.selectElements(
+    // Use liberal search to find any forbidden elements
+    const foundElements = elementSelector.selectElements(
       `//*[local-name()='${elementName}']`,
     );
-    if (elementsLiberal.length > 0) {
+    if (foundElements.length > 0) {
       throw new XMLValidationError(
-        `Found ${elementsLiberal.length} ${elementName} elements. None allowed in SAML responses`,
+        `Found ${foundElements.length} ${elementName} elements. None allowed in SAML responses`,
       );
     }
   });
 }
 
 /**
- * Enhanced signature profile validation based on Ruby Firewall
- * Validates signature structure, canonicalization methods, and transforms
+ * Create XPath for finding signatures that reference a specific ID
+ * Uses safe ID validation to prevent injection
  */
-function validateSignatureProfiles(selector: Selector): void {
-  const signatures = selector.selectElements("//*[local-name()='Signature']");
+function createSignatureXPath(nodeID: string): string {
+  validateXMLIdentifier(nodeID);
+  const escapedId = escapeXPathAttribute(nodeID);
 
-  signatures.forEach((signature) => {
-    validateIndividualSignature(signature, selector);
-  });
+  return (
+    ".//*[" +
+    "local-name(.)='Signature' and " +
+    "namespace-uri(.)='http://www.w3.org/2000/09/xmldsig#' and " +
+    `descendant::*[local-name(.)='Reference' and @URI=concat('#',${escapedId})]` +
+    "]"
+  );
 }
 
 /**
- * Validate individual signature structure and profile
- */
-function validateIndividualSignature(
-  signature: Element,
-  selector: Selector,
-): void {
-  // Check if this signature element is actually present in the document
-  const signatureXPath = `//*[local-name()='Signature']`;
-  const allSignatures = selector.selectElements(signatureXPath);
-
-  // Find the signature that corresponds to our element
-  let currentSignatureIndex = -1;
-  for (let i = 0; i < allSignatures.length; i++) {
-    if (allSignatures[i] === signature) {
-      currentSignatureIndex = i;
-      break;
-    }
-  }
-
-  if (currentSignatureIndex === -1) {
-    throw new XMLValidationError("Signature element not found in document");
-  }
-
-  // Use XPath to find SignedInfo elements within this specific signature
-  const signedInfoXPath = `(//ds:Signature)[${currentSignatureIndex + 1}]/ds:SignedInfo`;
-  const signedInfoNodes = selector.selectElements(signedInfoXPath);
-
-  if (signedInfoNodes.length !== 1) {
-    throw new XMLValidationError(
-      `Expected exactly one SignedInfo element, found ${signedInfoNodes.length}`,
-    );
-  }
-
-  // Use XPath to find Reference elements within the SignedInfo
-  const referenceXPath = `(//ds:Signature)[${currentSignatureIndex + 1}]/ds:SignedInfo/ds:Reference`;
-  const referenceNodes = selector.selectElements(referenceXPath);
-
-  if (referenceNodes.length !== 1) {
-    throw new XMLValidationError(
-      `Expected exactly one Reference element, found ${referenceNodes.length}`,
-    );
-  }
-
-  // Validate URI attribute
-  validateSignatureURI(referenceNodes[0], selector, currentSignatureIndex);
-
-  // Validate canonicalization method
-  validateCanonicalizationMethod(selector, currentSignatureIndex);
-
-  // Validate transforms
-  validateTransforms(selector, currentSignatureIndex);
-}
-
-/**
- * Validate signature URI references
- */
-function validateSignatureURI(
-  reference: Element,
-  selector: Selector,
-  signatureIndex: number,
-): void {
-  const uriAttr = selector.selectOptionalSingleAttribute(
-    `(//ds:Signature)[${signatureIndex + 1}]/ds:SignedInfo/ds:Reference/@URI`,
-  );
-
-  if (!uriAttr) {
-    throw new XMLValidationError("Signature Reference missing URI attribute");
-  }
-
-  const uri = uriAttr.value;
-
-  // URI should either be empty (root document) or reference an ID with #
-  if (uri === "") {
-    // Empty URI should reference root document
-    return;
-  }
-
-  if (!uri.startsWith("#")) {
-    throw new XMLValidationError(`Malformed URI: ${uri}`);
-  }
-
-  // Validate that the referenced ID exists and is unique
-  const referencedId = uri.substring(1);
-  const referencedElements = selector.selectElements(
-    `//*[@ID='${referencedId}']`,
-  );
-
-  if (referencedElements.length === 0) {
-    throw new XMLValidationError(
-      `URI references non-existent ID: ${referencedId}`,
-    );
-  }
-
-  if (referencedElements.length > 1) {
-    throw new XMLValidationError(
-      `Ambiguous reference URI: ${referencedId}, references ${referencedElements.length} elements`,
-    );
-  }
-}
-
-/**
- * Validate canonicalization method
- */
-function validateCanonicalizationMethod(
-  selector: Selector,
-  signatureIndex: number,
-): void {
-  const c14nMethods = selector.selectElements(
-    `(//ds:Signature)[${signatureIndex + 1}]/ds:SignedInfo/ds:CanonicalizationMethod`,
-  );
-
-  if (c14nMethods.length !== 1) {
-    throw new XMLValidationError(
-      `Expected exactly one CanonicalizationMethod, found ${c14nMethods.length}`,
-    );
-  }
-
-  const algorithmAttr = selector.selectOptionalSingleAttribute(
-    `(//ds:Signature)[${signatureIndex + 1}]/ds:SignedInfo/ds:CanonicalizationMethod/@Algorithm`,
-  );
-
-  const algorithm = algorithmAttr?.value;
-
-  const allowedAlgorithms = [
-    "http://www.w3.org/2001/10/xml-exc-c14n#",
-    "http://www.w3.org/2001/10/xml-exc-c14n#WithComments",
-  ];
-
-  if (!algorithm || !allowedAlgorithms.includes(algorithm)) {
-    throw new XMLValidationError(
-      `Invalid CanonicalizationMethod algorithm: ${algorithm}`,
-    );
-  }
-}
-
-/**
- * Validate signature transforms
- */
-function validateTransforms(selector: Selector, signatureIndex: number): void {
-  const transforms = selector.selectElements(
-    `(//ds:Signature)[${signatureIndex + 1}]/ds:SignedInfo/ds:Reference/ds:Transforms/ds:Transform`,
-  );
-
-  if (transforms.length > 2) {
-    throw new XMLValidationError(
-      `Too many transforms: ${transforms.length}. Maximum 2 allowed`,
-    );
-  }
-
-  const allowedTransforms = [
-    "http://www.w3.org/2000/09/xmldsig#enveloped-signature",
-    "http://www.w3.org/2001/10/xml-exc-c14n#",
-    "http://www.w3.org/2001/10/xml-exc-c14n#WithComments",
-  ];
-
-  transforms.forEach((transform, index) => {
-    const algorithmAttr = selector.selectOptionalSingleAttribute(
-      `(//ds:Signature)[${signatureIndex + 1}]/ds:SignedInfo/ds:Reference/ds:Transforms/ds:Transform[${index + 1}]/@Algorithm`,
-    );
-
-    const algorithm = algorithmAttr?.value;
-    if (!algorithm || !allowedTransforms.includes(algorithm)) {
-      throw new XMLValidationError(
-        `Unexpected transform algorithm: ${algorithm}`,
-      );
-    }
-  });
-}
-
-function validateSAMLResponseStructure(selector: Selector): void {
-  // Use liberal search to find all Response elements anywhere
-  const responseElementsLiberal = selector.selectElements(
-    "//*[local-name()='Response']",
-  );
-  if (responseElementsLiberal.length === 0) {
-    throw new XMLValidationError(
-      "document does not contain a SAML Response element",
-    );
-  }
-  if (responseElementsLiberal.length > 1) {
-    throw new XMLValidationError(
-      "document contains multiple SAML Response elements",
-    );
-  }
-
-  // Use strict search to ensure Response is at root level
-  const responseElementsStrict = selector.selectElements("./saml2p:Response");
-  if (
-    responseElementsStrict.length !== 1 ||
-    responseElementsLiberal[0] !== responseElementsStrict[0]
-  ) {
-    throw new XMLValidationError(
-      "Response element found but not at expected root location",
-    );
-  }
-}
-
-/**
- * Validates a SAML response for security vulnerabilities and structural validity
+ * Validates a SAML response by first parsing verified elements, then validating only signed content
+ * Implements strict security measures including XPath injection prevention and manual node traversal
  *
  * @param options - Configuration options for validation
  * @returns Promise that resolves when validation is complete
@@ -373,129 +691,24 @@ export async function validateSAMLResponse({
   performStringLevelValidation(response_xml);
 
   const dom = xmlBase64ToDOM(response_xml);
+
+  // CRITICAL: Block forbidden node types immediately after parsing via manual traversal
+  blockForbiddenNodes(dom);
+
+  // Validate forbidden elements within verified content only
+  validateForbiddenElementsInVerifiedContent(dom);
+
   const selector = createSelector(dom);
 
-  // Validate that this looks like a SAML response first
-  validateSAMLResponseStructure(selector);
+  // Parse and identify the verified SAML structure using strict XPath
+  const parsed = parseSAMLResponseStructure(selector);
 
-  // Validate document structure and node types
-  validateDocumentStructure(dom);
+  // Validate core requirements (signatures and status)
+  validateCoreRequirements(parsed);
 
-  // Validate element counts to prevent structure manipulation
-  validateElementCounts(selector);
-
-  const response_id = selector.selectSingleAttribute(
-    "//saml2p:Response/@ID",
-  ).value;
-
-  // We need to validate the response status before looking for assertions
-  // because depending on the failure, there might not be an assertion!
-  validateResponseStatus(selector);
-
-  const assertion_id = selector.selectSingleAttribute(
-    "//saml:Assertion/@ID",
-  ).value;
-
-  const isResponseSigned = !!selector.selectOptionalSingleElement(
-    xpathForSignature(response_id),
-  );
-  const isAssertionSigned = !!selector.selectOptionalSingleElement(
-    xpathForSignature(assertion_id),
-  );
-
-  if (!isResponseSigned && !isAssertionSigned) {
-    throw new SAMLExpectedAtLeastOneSignatureError();
-  }
-
-  // We are preemptively blocking all login requests containing comments
-  const comments = selector.selectComments("//comment()");
-  if (comments.length > 0) {
-    const commentDetails = comments.map((c) => ({
-      comment: c.nodeValue,
-      location: c.parentNode?.nodeName || "root",
-    }));
-    throw new XMLValidationError("response contained illegal XML comments", {
-      comments: commentDetails,
-    });
-  }
-
-  // We are preemptively blocking all login requests containing multiple SignedInfo Nodes within a single Signature node
-  const multipleSignatures = selector.selectElements(
-    "//*[local-name()='Signature' and count(*[local-name()='SignedInfo']) > 1]",
-  );
-  if (multipleSignatures.length > 0) {
-    throw new XMLValidationError(
-      "response contained multiple SignedInfo elements in a single signature",
-    );
-  }
-
-  // Enhanced signature profile validation (after existing validations pass)
-  validateSignatureProfiles(selector);
-
-  // We are preemptively blocking all login requests containing processing instructions
-  const processingInstructions = selector.selectProcessingInstructions(
-    "//processing-instruction()",
-  );
-  if (processingInstructions.length > 0) {
-    const processingInstructionsDetails = processingInstructions
-      .filter((c) => c.parentNode && c.parentNode?.nodeName !== "#document")
-      .map((c) => ({
-        processingInstruction: c.nodeValue,
-        location: c.parentNode?.nodeName || "root",
-      }));
-    if (processingInstructionsDetails.length > 0) {
-      throw new XMLValidationError(
-        "response contained illegal processing instructions",
-        {
-          comments: processingInstructionsDetails,
-        },
-      );
-    }
-  }
+  // Validate signature profiles within signed elements only
+  validateSignatureProfiles(parsed);
 }
-
-/**
- * Validate the status of the response -
- *   <StatusCode> is a recursive element that may indicate success or failure
- *   anything other than a value of "urn:oasis:names:tc:SAML:2.0:status:Success" indicates failure
- *   "urn...Requester" means the requester did something invalid
- *   "urn...Responder" means the responder was not able to satisfy the request
- *   "urn...VersionMismatch" means, well, version mismatch
- */
-function validateResponseStatus(selector: Selector) {
-  const status = selector.selectSingleAttribute(
-    "//saml2p:Response/samlp:Status/samlp:StatusCode/@Value",
-  ).value;
-
-  if (status === SUCCESS_STATUS) {
-    return;
-  }
-
-  const failures = selector
-    .selectAttributes(
-      "//saml2p:Response/samlp:Status/samlp:StatusCode/samlp:StatusCode/@Value",
-    )
-    .map((failure) => failure.value);
-
-  const response_id =
-    selector.selectOptionalSingleAttribute("//saml2p:Response/@ID")?.value ??
-    null;
-
-  throw new SAMLResponseFailureError(response_id, status, failures);
-}
-
-// Creates an xpath that looks for a <Signature> containing a <Reference> that points to the ID passed in.
-const xpathForSignature = (nodeID: string) => {
-  return (
-    ".//*[" +
-    "local-name(.)='Signature' and " +
-    "namespace-uri(.)='http://www.w3.org/2000/09/xmldsig#' and " +
-    "descendant::*[local-name(.)='Reference' and @URI='#" +
-    nodeID +
-    "']" +
-    "]"
-  );
-};
 
 /**
  * A safer wrapper around validateSAMLResponse that returns a result object instead of throwing

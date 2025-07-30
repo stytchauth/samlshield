@@ -19,7 +19,6 @@
   <saml2p:Status xmlns:saml2p="urn:oasis:names:tc:SAML:2.0:protocol">
     <saml2p:StatusCode Value="urn:oasis:names:tc:SAML:2.0:status:Success"/>
   </saml2p:Status>
-  <!-- Forbidden AuthnRequest element injection -->
   <saml2p:AuthnRequest xmlns:saml2p="urn:oasis:names:tc:SAML:2.0:protocol" ID="malicious_authn_request" Version="2.0" IssueInstant="2022-11-17T22:15:54.006Z" Destination="http://evil.com">
     <saml2:Issuer xmlns:saml2="urn:oasis:names:tc:SAML:2.0:assertion">http://evil.com</saml2:Issuer>
   </saml2p:AuthnRequest>

@@ -35,7 +35,6 @@
       </saml2:AuthnContext>
     </saml2:AuthnStatement>
   </saml2:Assertion>
-  <!-- Second response embedded within the first -->
   <saml2p:Response Destination="http://localhost:5001/callback" ID="id12345678901234567890123456" InResponseTo="ANOTHER_ID" IssueInstant="2022-11-17T22:15:54.006Z" Version="2.0">
     <saml2:Issuer Format="urn:oasis:names:tc:SAML:2.0:nameid-format:entity">http://www.okta.com/exk2wpjmakQqqs7dN697</saml2:Issuer>
     <saml2p:Status>
