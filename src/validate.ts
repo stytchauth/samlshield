@@ -468,7 +468,7 @@ function validateSignatureProfiles(parsed: ParsedSAMLResponse): void {
  */
 function validateIndividualSignatureProfile(
   signature: Element,
-  parentElement: Element
+  parentElement: Element,
 ): void {
   if (!signature) {
     throw new XMLValidationError("No signature");
@@ -478,32 +478,43 @@ function validateIndividualSignatureProfile(
   }
 
   const signatureSelector = createSelector(signature);
-  
+
   // Expect there to be one and only one SignedInfo
   // Liberal search first
-  const foundSignedInfoNodes = signatureSelector.selectElements(".//*[local-name()='SignedInfo']");
+  const foundSignedInfoNodes = signatureSelector.selectElements(
+    ".//*[local-name()='SignedInfo']",
+  );
   if (foundSignedInfoNodes.length !== 1) {
     if (foundSignedInfoNodes.length > 1) {
       // Check if these are direct children of this signature (single signature case)
-      const directSignedInfoChildren = signatureSelector.selectElements("./ds:SignedInfo");
+      const directSignedInfoChildren =
+        signatureSelector.selectElements("./ds:SignedInfo");
       if (directSignedInfoChildren.length > 1) {
         // Multiple SignedInfo as direct children - let the later check handle this
         // Skip the strict validation and go directly to the specific error at the end
-        const multipleSignatures = signatureSelector.selectElements("./ds:SignedInfo[2]");
+        const multipleSignatures =
+          signatureSelector.selectElements("./ds:SignedInfo[2]");
         if (multipleSignatures.length > 0) {
-          throw new XMLValidationError("response contained multiple SignedInfo elements in a single signature");
+          throw new XMLValidationError(
+            "response contained multiple SignedInfo elements in a single signature",
+          );
         }
       } else {
         // Multiple SignedInfo found but not direct children - document level issue
-        throw new XMLValidationError("response contained multiple SignedInfo elements");
+        throw new XMLValidationError(
+          "response contained multiple SignedInfo elements",
+        );
       }
     } else {
-      throw new XMLValidationError(`Expected exactly one SignedInfo element, found ${foundSignedInfoNodes.length}`);
+      throw new XMLValidationError(
+        `Expected exactly one SignedInfo element, found ${foundSignedInfoNodes.length}`,
+      );
     }
   }
 
   // Strict search
-  const expectedSignedInfo = signatureSelector.selectOptionalSingleElement("./ds:SignedInfo");
+  const expectedSignedInfo =
+    signatureSelector.selectOptionalSingleElement("./ds:SignedInfo");
   if (!expectedSignedInfo) {
     throw new XMLValidationError("No SignedInfo");
   }
@@ -515,15 +526,20 @@ function validateIndividualSignatureProfile(
 
   // Expect there to be one and only one reference node
   const signedInfoSelector = createSelector(expectedSignedInfo);
-  
+
   // Liberal search for Reference
-  const foundReferenceNodes = signatureSelector.selectElements(".//*[local-name()='Reference']");
+  const foundReferenceNodes = signatureSelector.selectElements(
+    ".//*[local-name()='Reference']",
+  );
   if (foundReferenceNodes.length !== 1) {
-    throw new XMLValidationError(`Expected exactly one Reference element, found ${foundReferenceNodes.length}`);
+    throw new XMLValidationError(
+      `Expected exactly one Reference element, found ${foundReferenceNodes.length}`,
+    );
   }
 
   // Strict search for Reference
-  const expectedReferenceNode = signedInfoSelector.selectOptionalSingleElement("./ds:Reference");
+  const expectedReferenceNode =
+    signedInfoSelector.selectOptionalSingleElement("./ds:Reference");
   if (!expectedReferenceNode) {
     throw new XMLValidationError("No Reference");
   }
@@ -535,15 +551,20 @@ function validateIndividualSignatureProfile(
 
   // Now reference logic validation
   // Most expressive URI attribute == Our expected URI attribute
-  const foundUriAttributes = signatureSelector.selectAttributes('.//@*[local-name()="URI"]');
+  const foundUriAttributes = signatureSelector.selectAttributes(
+    './/@*[local-name()="URI"]',
+  );
   const expectedUriAttribute = expectedReferenceNode.getAttributeNode("URI");
-  
+
   if (!expectedUriAttribute) {
     throw new XMLValidationError("No URI attribute");
   }
 
   // Verify only one URI attribute found and it matches expected
-  if (foundUriAttributes.length !== 1 || expectedUriAttribute !== foundUriAttributes[0]) {
+  if (
+    foundUriAttributes.length !== 1 ||
+    expectedUriAttribute !== foundUriAttributes[0]
+  ) {
     throw new XMLValidationError("Incorrect URI attribute found");
   }
 
@@ -557,26 +578,38 @@ function validateIndividualSignatureProfile(
   // Processing: URIs need to be "#ID" or ""
   if (expectedUri === "") {
     // Empty URI should reference root document element
-    const documentRoot = signature.ownerDocument?.documentElement || signature.ownerDocument?.firstChild;
+    const documentRoot =
+      signature.ownerDocument?.documentElement ||
+      signature.ownerDocument?.firstChild;
     if (documentRoot !== parentElement) {
-      throw new XMLValidationError("Doesn't dereference to root parent element (for empty URI)");
+      throw new XMLValidationError(
+        "Doesn't dereference to root parent element (for empty URI)",
+      );
     }
   } else if (expectedUri.startsWith("#")) {
     const referencedId = expectedUri.substring(1);
-    
+
     // Validate the referenced ID is safe
     validateXMLIdentifier(referencedId);
-    
+
     // Find all elements with this ID in the document
-    const documentSelector = createSelector(signature.ownerDocument || signature);
+    const documentSelector = createSelector(
+      signature.ownerDocument || signature,
+    );
     const escapedId = escapeXPathAttribute(referencedId);
-    const dereferencedElements = documentSelector.selectElements(`//*[@ID=${escapedId}]`);
-    
+    const dereferencedElements = documentSelector.selectElements(
+      `//*[@ID=${escapedId}]`,
+    );
+
     if (dereferencedElements.length !== 1) {
       if (dereferencedElements.length === 0) {
-        throw new XMLValidationError(`URI references non-existent ID: ${referencedId}`);
+        throw new XMLValidationError(
+          `URI references non-existent ID: ${referencedId}`,
+        );
       } else {
-        throw new XMLValidationError(`Ambiguous reference URI: ${referencedId}, dereferences to ${dereferencedElements.length} elements`);
+        throw new XMLValidationError(
+          `Ambiguous reference URI: ${referencedId}, dereferences to ${dereferencedElements.length} elements`,
+        );
       }
     }
 
@@ -589,12 +622,18 @@ function validateIndividualSignatureProfile(
   }
 
   // Next verify the CanonicalizationMethod
-  const foundC14nElements = signatureSelector.selectElements(".//*[local-name()='CanonicalizationMethod']");
+  const foundC14nElements = signatureSelector.selectElements(
+    ".//*[local-name()='CanonicalizationMethod']",
+  );
   if (foundC14nElements.length !== 1) {
-    throw new XMLValidationError(`Expected exactly one CanonicalizationMethod, found ${foundC14nElements.length}`);
+    throw new XMLValidationError(
+      `Expected exactly one CanonicalizationMethod, found ${foundC14nElements.length}`,
+    );
   }
 
-  const expectedC14nElement = signedInfoSelector.selectOptionalSingleElement("./ds:CanonicalizationMethod");
+  const expectedC14nElement = signedInfoSelector.selectOptionalSingleElement(
+    "./ds:CanonicalizationMethod",
+  );
   if (!expectedC14nElement) {
     throw new XMLValidationError("No CanonicalizationMethod");
   }
@@ -611,13 +650,19 @@ function validateIndividualSignatureProfile(
   ];
 
   if (!c14nAlgorithm || !allowedC14nAlgorithms.includes(c14nAlgorithm)) {
-    throw new XMLValidationError(`Invalid CanonicalizationMethod algorithm: ${c14nAlgorithm}`);
+    throw new XMLValidationError(
+      `Invalid CanonicalizationMethod algorithm: ${c14nAlgorithm}`,
+    );
   }
 
   // Next verify the Transforms
-  const foundTransforms = signatureSelector.selectElements(".//*[local-name()='Transform']");
+  const foundTransforms = signatureSelector.selectElements(
+    ".//*[local-name()='Transform']",
+  );
   if (foundTransforms.length > 2) {
-    throw new XMLValidationError(`Too many transforms: ${foundTransforms.length}. Maximum 2 allowed`);
+    throw new XMLValidationError(
+      `Too many transforms: ${foundTransforms.length}. Maximum 2 allowed`,
+    );
   }
 
   // Next verify the Transform Algorithm
@@ -630,14 +675,19 @@ function validateIndividualSignatureProfile(
   foundTransforms.forEach((transform) => {
     const transformAlg = transform.getAttribute("Algorithm");
     if (!transformAlg || !allowedTransforms.includes(transformAlg)) {
-      throw new XMLValidationError(`Unexpected transform algorithm: ${transformAlg}`);
+      throw new XMLValidationError(
+        `Unexpected transform algorithm: ${transformAlg}`,
+      );
     }
   });
 
   // Check for multiple SignedInfo nodes within this signature (redundant but keeping for completeness)
-  const multipleSignatures = signatureSelector.selectElements("./ds:SignedInfo[2]");
+  const multipleSignatures =
+    signatureSelector.selectElements("./ds:SignedInfo[2]");
   if (multipleSignatures.length > 0) {
-    throw new XMLValidationError("response contained multiple SignedInfo elements in a single signature");
+    throw new XMLValidationError(
+      "response contained multiple SignedInfo elements in a single signature",
+    );
   }
 }
 
