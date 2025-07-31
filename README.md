@@ -59,9 +59,9 @@ if (result.valid) {
 }
 ```
 
-## Hosted Version
+## Managed Version
 
-For those who prefer not to manage dependencies and updates, [**samlshield.com**](https://samlshield.com?utm=github) offers a hosted version of this validation service. The hosted version provides the same security-first SAML validation without requiring you to maintain or update the library yourself. Check out the [Getting Start here](https://samlshield.com/docs/about-saml-shield?utm=github).
+For those who prefer not to manage dependencies and updates, [**samlshield.com**](https://samlshield.com?utm=github) offers a managed version of this validation service. The managed version provides the same security-first SAML validation without requiring you to maintain or update the library yourself. Check out the [Getting Start here](https://samlshield.com/docs/about-saml-shield?utm=github).
 
 ## API Reference
 
