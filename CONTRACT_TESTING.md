@@ -24,6 +24,7 @@ Each test case is defined in a `.test.json` file with the following structure:
   "input": {
     "response_xml": "!embed:base64:file://saml_response.xml"
   },
+  "mockTime": "2022-11-20T12:00:00.000Z",
   "shouldSucceed": true,
   "expectedError": "Expected error message (for failing tests)",
   "expectedErrorCode": "EXPECTED_ERROR_CODE",
@@ -37,6 +38,7 @@ Each test case is defined in a `.test.json` file with the following structure:
 - `name`: Human-readable test name (optional, defaults to file path)
 - `description`: Detailed description of the test case
 - `input`: Input parameters passed to the validation function
+- `mockTime`: ISO 8601 timestamp to mock current time for timestamp validation tests
 - `shouldSucceed`: Whether the test should pass (true) or fail (false)
 - `expectedError`: Substring that should appear in error message (for failing tests)
 - `expectedErrorCode`: Expected error code for failing tests
@@ -110,6 +112,7 @@ Test cases that should fail due to security vulnerabilities:
 - Multiple SignedInfo elements
 - Processing instruction injection
 - External entity references
+- Timestamp validation (replay attack prevention)
 
 ## Running Contract Tests
 
@@ -122,7 +125,8 @@ yarn test
 
 1. **Create test data**: Add XML files to the appropriate subdirectory
 2. **Create test definition**: Add a `.test.json` file with test metadata
-3. **Run tests**: Use `yarn test` to validate
+3. **Add mockTime if needed**: For SAML XML with validity timestamps, add `mockTime` field set to a time within the XML's validity window to prevent timestamp validation failures
+4. **Run tests**: Use `yarn test` to validate
 
 Example new test case:
 
