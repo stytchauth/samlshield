@@ -2,6 +2,9 @@
 
 A Node.js library for validating SAML responses. This library provides security-first SAML validation to protect against common vulnerabilities.
 
+![Static Badge](https://img.shields.io/badge/Website-samlshield.com-blue?link=https%3A%2F%2Fsamlshield.com%3Futm%3Dgithub)
+![NPM Version](https://img.shields.io/npm/v/%40stytch%2Fsamlshield)
+
 ## Features
 
 - **XML External Entity (XXE) Attack Protection**: Prevents malicious external entity references
@@ -55,6 +58,10 @@ if (result.valid) {
   console.error("Validation errors:", result.errors);
 }
 ```
+
+## Managed Version
+
+For those who prefer not to manage dependencies and updates, [**samlshield.com**](https://samlshield.com?utm=github) offers a managed version of this validation service. The managed version provides the same security-first SAML validation without requiring you to maintain or update the library yourself. Check out the [Getting Start here](https://samlshield.com/docs/about-saml-shield?utm=github).
 
 ## API Reference
 
