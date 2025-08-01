@@ -4,6 +4,7 @@
   "input": {
     "response_xml": "!embed:base64:file://malformed_signature_uri.xml"
   },
+  "mockTime": "2022-11-17T22:15:54.006Z",
   "shouldSucceed": false,
   "expectedError": "Malformed URI: http://evil.com/malicious",
   "expectedErrorCode": "XML_VALIDATION_ERROR"

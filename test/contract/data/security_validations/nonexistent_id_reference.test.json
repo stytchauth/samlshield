@@ -4,6 +4,7 @@
   "input": {
     "response_xml": "!embed:base64:file://nonexistent_id_reference.xml"
   },
+  "mockTime": "2022-11-17T22:15:54.006Z",
   "shouldSucceed": false,
   "expectedError": "URI references non-existent ID: nonexistent_id_reference",
   "expectedErrorCode": "XML_VALIDATION_ERROR"
