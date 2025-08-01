@@ -333,11 +333,26 @@ function parseSAMLResponseStructure(selector: Selector): ParsedSAMLResponse {
 /**
  * Validate that at least one element is signed and check response status
  * Uses strict XPath and validates against liberal search for consistency
+ * Note: Encrypted assertions are accepted unsigned since we cannot validate their content before decryption
  */
 function validateCoreRequirements(parsed: ParsedSAMLResponse): void {
-  // Require at least one signature
-  if (!parsed.isResponseSigned && !parsed.isAssertionSigned) {
+  // For encrypted assertions, we allow the case where only the response is signed
+  // or neither is signed (since the assertion may be signed within the encrypted content)
+  const hasEncryptedAssertion = !!parsed.encryptedAssertionElement;
+
+  if (
+    !hasEncryptedAssertion &&
+    !parsed.isResponseSigned &&
+    !parsed.isAssertionSigned
+  ) {
+    // If no encrypted assertion, require at least one signature
     throw new SAMLExpectedAtLeastOneSignatureError();
+  } else if (hasEncryptedAssertion && !parsed.isResponseSigned) {
+    // For encrypted assertions, we still require the response to be signed
+    // The assertion signature will be validated after decryption by the consumer
+    throw new XMLValidationError(
+      "Response must be signed when containing encrypted assertions",
+    );
   }
 
   // Validate response status - Status should be direct child of Response
@@ -406,7 +421,13 @@ function validateSignatureProfiles(parsed: ParsedSAMLResponse): void {
   }
 
   if (allSignatures.length === 0) {
-    // TODO: Handle empty case because of encrypted assertions?
+    // Allow unsigned encrypted assertions - they may be signed within the encrypted content
+    if (parsed.encryptedAssertionElement && parsed.isResponseSigned) {
+      // Response is signed, encrypted assertion can be unsigned
+      return;
+    }
+    // If no encrypted assertion or response is not signed, this should not happen
+    // as validateCoreRequirements should have caught this
     return;
   } else if (allSignatures.length === 1) {
     const foundSignature = allSignatures[0];
@@ -681,6 +702,73 @@ function validateIndividualSignatureProfile(
     }
   });
 
+  // Validate SignatureMethod to block HMAC-based algorithms
+  const foundSignatureMethods = signatureSelector.selectElements(
+    ".//*[local-name()='SignatureMethod']",
+  );
+  if (foundSignatureMethods.length !== 1) {
+    throw new XMLValidationError(
+      `Expected exactly one SignatureMethod, found ${foundSignatureMethods.length}`,
+    );
+  }
+
+  const expectedSignatureMethod =
+    signedInfoSelector.selectOptionalSingleElement("./ds:SignatureMethod");
+  if (!expectedSignatureMethod) {
+    throw new XMLValidationError("No SignatureMethod");
+  }
+
+  // Verify liberal and strict find the same element
+  if (foundSignatureMethods[0] !== expectedSignatureMethod) {
+    throw new XMLValidationError("Unexpected SignatureMethod");
+  }
+
+  const signatureAlgorithm = expectedSignatureMethod.getAttribute("Algorithm");
+
+  // Block HMAC-based signature methods as they are symmetric and unsuitable for SAML
+  const blockedSignatureAlgorithms = [
+    "http://www.w3.org/2000/09/xmldsig#hmac-sha1",
+    "http://www.w3.org/2001/04/xmldsig-more#hmac-sha256",
+    "http://www.w3.org/2001/04/xmldsig-more#hmac-sha384",
+    "http://www.w3.org/2001/04/xmldsig-more#hmac-sha512",
+  ];
+
+  if (
+    signatureAlgorithm &&
+    blockedSignatureAlgorithms.includes(signatureAlgorithm)
+  ) {
+    throw new XMLValidationError(
+      `HMAC-based SignatureMethod blocked: ${signatureAlgorithm}`,
+    );
+  }
+
+  // Validate allowed signature algorithms (RSA and ECDSA variants)
+  const allowedSignatureAlgorithms = [
+    "http://www.w3.org/2000/09/xmldsig#rsa-sha1",
+    "http://www.w3.org/2001/04/xmldsig-more#rsa-sha256",
+    "http://www.w3.org/2001/04/xmldsig-more#rsa-sha384",
+    "http://www.w3.org/2001/04/xmldsig-more#rsa-sha512",
+    "http://www.w3.org/2001/04/xmldsig-more#ecdsa-sha1",
+    "http://www.w3.org/2001/04/xmldsig-more#ecdsa-sha256",
+    "http://www.w3.org/2001/04/xmldsig-more#ecdsa-sha384",
+    "http://www.w3.org/2001/04/xmldsig-more#ecdsa-sha512",
+  ];
+
+  if (
+    !signatureAlgorithm ||
+    !allowedSignatureAlgorithms.includes(signatureAlgorithm)
+  ) {
+    throw new XMLValidationError(
+      `Invalid SignatureMethod algorithm: ${signatureAlgorithm}`,
+    );
+  }
+
+  // Validate DigestMethod and DigestValue to prevent wrapping attacks
+  validateDigestValueIntegrity(signatureSelector, signedInfoSelector);
+
+  // Validate that all DigestValues in the parent element are properly contained within signatures
+  validateAllDigestValuesAreInSignatures(parentElement);
+
   // Check for multiple SignedInfo nodes within this signature (redundant but keeping for completeness)
   const multipleSignatures =
     signatureSelector.selectElements("./ds:SignedInfo[2]");
@@ -688,6 +776,123 @@ function validateIndividualSignatureProfile(
     throw new XMLValidationError(
       "response contained multiple SignedInfo elements in a single signature",
     );
+  }
+}
+
+/**
+ * Validate DigestMethod and DigestValue integrity to prevent wrapping attacks
+ * This addresses CVE-style attacks where DigestValue can be manipulated to reference different content
+ */
+function validateDigestValueIntegrity(
+  signatureSelector: Selector,
+  signedInfoSelector: Selector,
+): void {
+  // Find DigestMethod elements - liberal search within signature scope
+  const foundDigestMethods = signatureSelector.selectElements(
+    ".//*[local-name()='DigestMethod']",
+  );
+  if (foundDigestMethods.length !== 1) {
+    throw new XMLValidationError(
+      `Expected exactly one DigestMethod, found ${foundDigestMethods.length}`,
+    );
+  }
+
+  const expectedDigestMethod = signedInfoSelector.selectElements(
+    "./ds:Reference/ds:DigestMethod",
+  );
+  if (expectedDigestMethod.length !== 1) {
+    throw new XMLValidationError("No DigestMethod in expected location");
+  }
+
+  // Verify liberal and strict find the same element
+  if (foundDigestMethods[0] !== expectedDigestMethod[0]) {
+    throw new XMLValidationError("DigestMethod location mismatch");
+  }
+
+  // Validate DigestMethod algorithm
+  const digestAlgorithm = expectedDigestMethod[0].getAttribute("Algorithm");
+  const allowedDigestAlgorithms = [
+    "http://www.w3.org/2000/09/xmldsig#sha1",
+    "http://www.w3.org/2001/04/xmlenc#sha256",
+    "http://www.w3.org/2001/04/xmldsig-more#sha384",
+    "http://www.w3.org/2001/04/xmldsig-more#sha512",
+    "http://www.w3.org/2001/04/xmlenc#sha512", // Also allow this variant
+  ];
+
+  if (!digestAlgorithm || !allowedDigestAlgorithms.includes(digestAlgorithm)) {
+    throw new XMLValidationError(
+      `Invalid DigestMethod algorithm: ${digestAlgorithm}`,
+    );
+  }
+
+  // Find DigestValue within this specific signature
+  const foundDigestValues = signatureSelector.selectElements(
+    ".//*[local-name()='DigestValue']",
+  );
+  if (foundDigestValues.length !== 1) {
+    throw new XMLValidationError(
+      `Expected exactly one DigestValue per signature, found ${foundDigestValues.length}. Multiple DigestValues can enable wrapping attacks`,
+    );
+  }
+
+  const expectedDigestValue = signedInfoSelector.selectElements(
+    "./ds:Reference/ds:DigestValue",
+  );
+  if (expectedDigestValue.length !== 1) {
+    throw new XMLValidationError("No DigestValue in expected location");
+  }
+
+  // Verify within this signature, liberal and strict find the same element
+  if (foundDigestValues[0] !== expectedDigestValue[0]) {
+    throw new XMLValidationError(
+      "DigestValue location mismatch - potential wrapping attack detected",
+    );
+  }
+
+  // Validate DigestValue content is not empty
+  const digestValueContent = expectedDigestValue[0].textContent?.trim();
+  if (!digestValueContent) {
+    throw new XMLValidationError("DigestValue cannot be empty");
+  }
+
+  // Ensure DigestValue contains only valid base64 characters
+  const base64Pattern = /^[A-Za-z0-9+/]*={0,2}$/;
+  if (!base64Pattern.test(digestValueContent)) {
+    throw new XMLValidationError("DigestValue contains invalid characters");
+  }
+}
+
+/**
+ * Validate that all DigestValues in an element are properly contained within signatures
+ * This prevents DigestValue wrapping attacks where malicious DigestValues are placed outside proper context
+ */
+function validateAllDigestValuesAreInSignatures(parentElement: Element): void {
+  const parentSelector = createSelector(parentElement);
+
+  // Find all DigestValues in the parent element
+  const allDigestValues = parentSelector.selectElements(
+    ".//*[local-name()='DigestValue']",
+  );
+
+  // Find all DigestValues that are properly contained within Reference elements
+  const properDigestValues = parentSelector.selectElements(
+    ".//ds:Signature/ds:SignedInfo/ds:Reference/ds:DigestValue",
+  );
+
+  // All DigestValues should be in proper Reference locations
+  if (allDigestValues.length !== properDigestValues.length) {
+    throw new XMLValidationError(
+      `Found ${allDigestValues.length} DigestValue elements but only ${properDigestValues.length} are in proper signature Reference context. Potential DigestValue wrapping attack detected`,
+    );
+  }
+
+  // Verify each DigestValue is accounted for in proper locations
+  for (const digestValue of allDigestValues) {
+    if (!properDigestValues.includes(digestValue)) {
+      throw new XMLValidationError(
+        "DigestValue found outside proper signature Reference context - potential wrapping attack detected",
+      );
+    }
   }
 }
 

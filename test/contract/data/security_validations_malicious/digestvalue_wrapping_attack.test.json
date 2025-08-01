@@ -1,0 +1,10 @@
+{
+  "name": "DigestValue Wrapping Attack - Multiple DigestValue Elements",
+  "description": "Should detect and block multiple DigestValue elements that could enable wrapping attacks",
+  "input": {
+    "response_xml": "!embed:base64:file://digestvalue_wrapping_attack.xml"
+  },
+  "shouldSucceed": false,
+  "expectedError": "Expected exactly one DigestValue per signature, found 2. Multiple DigestValues can enable wrapping attacks",
+  "expectedErrorCode": "XML_VALIDATION_ERROR"
+}

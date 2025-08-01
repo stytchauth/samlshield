@@ -1,0 +1,10 @@
+{
+  "name": "DigestValue Location Mismatch - Wrapping Attack Prevention",
+  "description": "Should detect DigestValue elements placed outside proper Reference context",
+  "input": {
+    "response_xml": "!embed:base64:file://digestvalue_location_mismatch.xml"
+  },
+  "shouldSucceed": false,
+  "expectedError": "Found 2 DigestValue elements but only 1 are in proper signature Reference context. Potential DigestValue wrapping attack detected",
+  "expectedErrorCode": "XML_VALIDATION_ERROR"
+}
