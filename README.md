@@ -2,8 +2,9 @@
 
 A Node.js library for validating SAML responses. This library provides security-first SAML validation to protect against common vulnerabilities.
 
-![Static Badge](https://img.shields.io/badge/Website-samlshield.com-blue?link=https%3A%2F%2Fsamlshield.com%3Futm%3Dgithub)
+[![Website](https://img.shields.io/badge/Website-samlshield.com-blue)](https://samlshield.com?utm_source=github&utm_medium=referral&utm_campaign=samlshield&utm_content=button)
 ![NPM Version](https://img.shields.io/npm/v/%40stytch%2Fsamlshield)
+![GitHub License](https://img.shields.io/github/license/stytchauth/samlshield)
 
 ## Features
 
