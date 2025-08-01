@@ -1,0 +1,10 @@
+{
+  "name": "Too Many Transforms Attack",
+  "description": "Should fail validateTransforms due to too many transform elements",
+  "comment": "Tests that validateTransforms blocks excessive transform elements (max 2 allowed)",
+  "input": {
+    "response_xml": "!embed:base64:file://too_many_transforms_attack.xml"
+  },
+  "shouldSucceed": false,
+  "expectedError": "Too many transforms: 3. Maximum 2 allowed"
+}

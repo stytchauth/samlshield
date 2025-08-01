@@ -1,0 +1,10 @@
+{
+  "name": "DOCTYPE Entity Attack - XML Parser Validation",
+  "description": "Should fail XML parser validation due to DOCTYPE with entity declaration (not performStringLevelValidation)",
+  "comment": "Tests that XML parser blocks DOCTYPE declarations with entities",
+  "input": {
+    "response_xml": "!embed:base64:file://doctype_entity_attack.xml"
+  },
+  "shouldSucceed": false,
+  "expectedError": "External Entities are forbidden"
+}

@@ -1,0 +1,10 @@
+{
+  "name": "Malformed URI Attack - validateSignatureURI",
+  "description": "Should fail validateSignatureURI due to malformed URI that doesn't start with #",
+  "comment": "Tests that validateSignatureURI blocks malformed URI references",
+  "input": {
+    "response_xml": "!embed:base64:file://malformed_uri_working_base.xml"
+  },
+  "shouldSucceed": false,
+  "expectedError": "Malformed URI: http://evil.com/malicious"
+}

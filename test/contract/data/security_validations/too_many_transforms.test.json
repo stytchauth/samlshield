@@ -1,0 +1,10 @@
+{
+  "name": "Too Many Transforms - Transform Validation",
+  "description": "Should detect and block signature references with too many transforms",
+  "input": {
+    "response_xml": "!embed:base64:file://too_many_transforms.xml"
+  },
+  "shouldSucceed": false,
+  "expectedError": "Too many transforms: 3. Maximum 2 allowed",
+  "expectedErrorCode": "XML_VALIDATION_ERROR"
+}

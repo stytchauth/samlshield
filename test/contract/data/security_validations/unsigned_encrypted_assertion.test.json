@@ -1,0 +1,9 @@
+{
+  "name": "Unsigned Encrypted Assertion - Valid Case",
+  "description": "Should accept unsigned encrypted assertions when the response is signed",
+  "input": {
+    "response_xml": "!embed:base64:file://unsigned_encrypted_assertion.xml"
+  },
+  "shouldSucceed": true,
+  "expectedErrorCode": null
+}

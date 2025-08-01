@@ -1,0 +1,10 @@
+{
+  "name": "Malformed Signature URI - Signature URI Validation",
+  "description": "Should detect and block malformed signature URI references",
+  "input": {
+    "response_xml": "!embed:base64:file://malformed_signature_uri.xml"
+  },
+  "shouldSucceed": false,
+  "expectedError": "Malformed URI: http://evil.com/malicious",
+  "expectedErrorCode": "XML_VALIDATION_ERROR"
+}

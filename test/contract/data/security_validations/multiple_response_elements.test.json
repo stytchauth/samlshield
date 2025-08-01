@@ -1,0 +1,10 @@
+{
+  "name": "Multiple Response Elements - Element Count Validation",
+  "description": "Should detect and block multiple Response elements",
+  "input": {
+    "response_xml": "!embed:base64:file://multiple_response_elements.xml"
+  },
+  "shouldSucceed": false,
+  "expectedError": "document contains multiple SAML Response elements",
+  "expectedErrorCode": "XML_VALIDATION_ERROR"
+}

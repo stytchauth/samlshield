@@ -1,0 +1,11 @@
+{
+  "name": "Nonexistent ID URI Attack - validateSignatureURI",
+  "description": "Should fail validateSignatureURI due to URI referencing nonexistent ID",
+  "comment": "Tests that validateSignatureURI blocks references to nonexistent IDs",
+  "input": {
+    "response_xml": "!embed:base64:file://nonexistent_id_working_base.xml"
+  },
+  "shouldSucceed": false,
+  "expectedError": "URI references non-existent ID: nonexistent_id_reference",
+  "expectedErrorCode": "XML_VALIDATION_ERROR"
+}

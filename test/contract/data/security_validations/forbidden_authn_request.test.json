@@ -1,0 +1,10 @@
+{
+  "name": "Forbidden AuthnRequest Element - Element Count Validation",
+  "description": "Should detect and block forbidden AuthnRequest elements in responses",
+  "input": {
+    "response_xml": "!embed:base64:file://forbidden_authn_request.xml"
+  },
+  "shouldSucceed": false,
+  "expectedError": "Found 1 AuthnRequest elements. None allowed in SAML responses",
+  "expectedErrorCode": "XML_VALIDATION_ERROR"
+}

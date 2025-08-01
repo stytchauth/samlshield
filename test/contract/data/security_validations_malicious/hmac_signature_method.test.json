@@ -1,0 +1,10 @@
+{
+  "name": "HMAC SignatureMethod Blocked - Security Validation",
+  "description": "Should detect and block HMAC-based signature methods which are unsuitable for SAML",
+  "input": {
+    "response_xml": "!embed:base64:file://hmac_signature_method.xml"
+  },
+  "shouldSucceed": false,
+  "expectedError": "HMAC-based SignatureMethod blocked: http://www.w3.org/2000/09/xmldsig#hmac-sha1",
+  "expectedErrorCode": "XML_VALIDATION_ERROR"
+}

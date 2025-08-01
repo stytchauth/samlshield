@@ -1,0 +1,10 @@
+{
+  "name": "Multiple Assertions - Element Count Validation",
+  "description": "Should detect and block multiple Assertion elements",
+  "input": {
+    "response_xml": "!embed:base64:file://multiple_assertions.xml"
+  },
+  "shouldSucceed": false,
+  "expectedError": "Found 2 of Assertions/EncryptedAssertion elements. Only one allowed",
+  "expectedErrorCode": "XML_VALIDATION_ERROR"
+}

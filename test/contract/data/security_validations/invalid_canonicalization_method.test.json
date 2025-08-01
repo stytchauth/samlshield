@@ -1,0 +1,10 @@
+{
+  "name": "Invalid Canonicalization Method - Canonicalization Method Validation",
+  "description": "Should detect and block invalid canonicalization algorithms",
+  "input": {
+    "response_xml": "!embed:base64:file://invalid_canonicalization_method.xml"
+  },
+  "shouldSucceed": false,
+  "expectedError": "Invalid CanonicalizationMethod algorithm: http://www.w3.org/TR/2001/REC-xml-c14n-20010315",
+  "expectedErrorCode": "XML_VALIDATION_ERROR"
+}

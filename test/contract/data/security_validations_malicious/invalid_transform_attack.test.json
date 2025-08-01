@@ -1,0 +1,10 @@
+{
+  "name": "Invalid Transform Attack",
+  "description": "Should fail validateTransforms due to invalid transform algorithm",
+  "comment": "Tests that validateTransforms blocks invalid transform algorithms",
+  "input": {
+    "response_xml": "!embed:base64:file://invalid_transform_attack.xml"
+  },
+  "shouldSucceed": false,
+  "expectedError": "Unexpected transform algorithm"
+}

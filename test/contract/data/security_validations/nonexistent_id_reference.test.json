@@ -1,0 +1,10 @@
+{
+  "name": "Non-existent ID Reference - Signature URI Validation",
+  "description": "Should detect and block signature references to non-existent IDs",
+  "input": {
+    "response_xml": "!embed:base64:file://nonexistent_id_reference.xml"
+  },
+  "shouldSucceed": false,
+  "expectedError": "URI references non-existent ID: nonexistent_id_reference",
+  "expectedErrorCode": "XML_VALIDATION_ERROR"
+}
