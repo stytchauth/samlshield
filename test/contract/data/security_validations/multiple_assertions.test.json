@@ -6,5 +6,5 @@
   },
   "shouldSucceed": false,
   "expectedError": "Found 2 of Assertions/EncryptedAssertion elements. Only one allowed",
-  "expectedErrorCode": "XML_VALIDATION_ERROR"
+  "expectedErrorCode": "xml_validation_error"
 }

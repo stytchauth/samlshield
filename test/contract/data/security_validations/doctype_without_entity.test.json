@@ -6,5 +6,5 @@
   },
   "shouldSucceed": false,
   "expectedError": "DOCTYPE detected and blocked",
-  "expectedErrorCode": "XML_VALIDATION_ERROR"
+  "expectedErrorCode": "xml_validation_error"
 }

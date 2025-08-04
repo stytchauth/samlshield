@@ -17,13 +17,13 @@ export class SAMLShieldError extends Error {
 
 export class ValidationError extends SAMLShieldError {
   constructor(reason: string) {
-    super(`Invalid input: ${reason}`, "VALIDATION_ERROR");
+    super(`Invalid input: ${reason}`, "validation_error");
   }
 }
 
 export class XMLValidationError extends SAMLShieldError {
   constructor(reason: string, details?: ErrorDetails) {
-    super(`Invalid input: ${reason}`, "XML_VALIDATION_ERROR", {
+    super(`Invalid input: ${reason}`, "xml_validation_error", {
       ...details,
       invalid_input: reason,
     });
@@ -56,7 +56,7 @@ export class SAMLExpectedAtLeastOneSignatureError extends SAMLShieldError {
   constructor() {
     super(
       "Invalid input: one of response or assertion must be signed",
-      "SAML_ASSERTION_NOT_SIGNED",
+      "saml_assertion_not_signed",
     );
   }
 }
@@ -65,7 +65,7 @@ export class XMLExternalEntitiesForbiddenError extends SAMLShieldError {
   constructor() {
     super(
       "Invalid input: External Entities are forbidden",
-      "XML_VALIDATION_ERROR",
+      "xml_validation_error",
       { invalid_input: "External Entities are forbidden" },
     );
   }
@@ -79,7 +79,7 @@ export class SAMLResponseFailureError extends SAMLShieldError {
   ) {
     super(
       "IDP was not able to complete the login as requested",
-      "SAML_LOGIN_FAILED",
+      "saml_login_failed",
       {
         response_id,
         saml_status_code,
@@ -93,13 +93,13 @@ export class SAMLAssertionExpiredError extends SAMLShieldError {
   constructor() {
     super(
       "SAML assertion expired: clocks skewed too much",
-      "SAML_ASSERTION_EXPIRED",
+      "saml_assertion_expired",
     );
   }
 }
 
 export class SAMLAssertionNotYetValidError extends SAMLShieldError {
   constructor() {
-    super("SAML assertion not yet valid", "SAML_ASSERTION_NOT_YET_VALID");
+    super("SAML assertion not yet valid", "saml_assertion_not_yet_valid");
   }
 }

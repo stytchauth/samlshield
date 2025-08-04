@@ -11,5 +11,5 @@
   },
   "shouldSucceed": false,
   "expectedError": "Invalid input: External Entities are forbidden",
-  "expectedErrorCode": "XML_VALIDATION_ERROR"
+  "expectedErrorCode": "xml_validation_error"
 }

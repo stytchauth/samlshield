@@ -11,5 +11,5 @@
   "mockTime": "2024-12-08T09:50:00Z",
   "shouldSucceed": false,
   "expectedError": "Invalid input: response contained illegal XML comments",
-  "expectedErrorCode": "XML_VALIDATION_ERROR"
+  "expectedErrorCode": "xml_validation_error"
 }

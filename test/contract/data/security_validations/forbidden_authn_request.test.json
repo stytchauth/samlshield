@@ -6,5 +6,5 @@
   },
   "shouldSucceed": false,
   "expectedError": "Found 1 AuthnRequest elements. None allowed in SAML responses",
-  "expectedErrorCode": "XML_VALIDATION_ERROR"
+  "expectedErrorCode": "xml_validation_error"
 }

@@ -7,5 +7,5 @@
   "shouldSucceed": false,
   "mockTime": "2022-11-17T22:15:54.006Z",
   "expectedError": "Too many transforms: 3. Maximum 2 allowed",
-  "expectedErrorCode": "XML_VALIDATION_ERROR"
+  "expectedErrorCode": "xml_validation_error"
 }

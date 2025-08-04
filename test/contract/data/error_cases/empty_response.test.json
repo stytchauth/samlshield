@@ -6,5 +6,5 @@
   },
   "shouldSucceed": false,
   "expectedError": "missing required field: SAMLResponse",
-  "expectedErrorCode": "VALIDATION_ERROR"
+  "expectedErrorCode": "validation_error"
 }

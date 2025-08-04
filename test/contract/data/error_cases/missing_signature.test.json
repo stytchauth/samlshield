@@ -6,5 +6,5 @@
   },
   "shouldSucceed": false,
   "expectedError": "one of response or assertion must be signed",
-  "expectedErrorCode": "SAML_ASSERTION_NOT_SIGNED"
+  "expectedErrorCode": "saml_assertion_not_signed"
 }

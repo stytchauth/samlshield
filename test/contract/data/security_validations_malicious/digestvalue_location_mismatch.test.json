@@ -6,5 +6,5 @@
   },
   "shouldSucceed": false,
   "expectedError": "Found 2 DigestValue elements but only 1 are in proper signature Reference context. Potential DigestValue wrapping attack detected",
-  "expectedErrorCode": "XML_VALIDATION_ERROR"
+  "expectedErrorCode": "xml_validation_error"
 }

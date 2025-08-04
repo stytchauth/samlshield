@@ -6,5 +6,5 @@
   },
   "shouldSucceed": false,
   "expectedError": "HMAC-based SignatureMethod blocked: http://www.w3.org/2000/09/xmldsig#hmac-sha1",
-  "expectedErrorCode": "XML_VALIDATION_ERROR"
+  "expectedErrorCode": "xml_validation_error"
 }
