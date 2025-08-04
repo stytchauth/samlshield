@@ -948,7 +948,7 @@ function createSignatureXPath(nodeID: string): string {
 }
 
 // Clock skew tolerance in milliseconds
-const CLOCK_SKEW_TOLERANCE_MS = 5 * 60 * 1000; // 5 minutes
+const CLOCK_SKEW_TOLERANCE_MS = 10 * 60 * 1000; // 10 minutes
 
 // Default time function - can be mocked for testing
 export const getCurrentTime = (): number => new Date().getTime();
