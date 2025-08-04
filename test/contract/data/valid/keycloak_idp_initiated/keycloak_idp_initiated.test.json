@@ -9,5 +9,6 @@
   "input": {
     "response_xml": "!embed:base64:file://keycloak_idp_initiated_response.xml"
   },
+  "mockTime": "2022-11-23T19:15:17.022Z",
   "shouldSucceed": true
 }

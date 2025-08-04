@@ -11,6 +11,7 @@ type TestCase = {
   name?: string;
   description?: string;
   input?: Record<string, unknown>;
+  mockTime?: string;
   shouldSucceed?: boolean;
   expectedError?: string;
   expectedErrorCode?: string;
@@ -65,6 +66,10 @@ export class ContractTestCase {
 
   get expectedErrorCode() {
     return this.fileContents.expectedErrorCode;
+  }
+
+  get mockTime() {
+    return this.fileContents.mockTime;
   }
 
   get input() {

@@ -11,6 +11,7 @@
   "input": {
     "response_xml": "!embed:base64:file://processing_instruction_in_nameid.xml"
   },
+  "mockTime": "2022-11-04T03:05:00Z",
   "shouldSucceed": false,
   "expectedError": "Invalid input: response contained illegal processing instructions",
   "expectedErrorCode": "XML_VALIDATION_ERROR"

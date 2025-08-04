@@ -36,5 +36,7 @@ export {
   SAMLExpectedAtLeastOneSignatureError,
   XMLExternalEntitiesForbiddenError,
   SAMLResponseFailureError,
+  SAMLAssertionExpiredError,
+  SAMLAssertionNotYetValidError,
   ErrorDetails,
 } from "./errors";

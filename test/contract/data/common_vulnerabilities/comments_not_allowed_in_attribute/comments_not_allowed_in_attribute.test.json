@@ -13,6 +13,7 @@
   "input": {
     "response_xml": "!embed:base64:file://comment_in_attribute_value.xml"
   },
+  "mockTime": "2022-11-17T22:28:00Z",
   "shouldSucceed": false,
   "expectedError": "Invalid input: response contained illegal XML comments",
   "expectedErrorCode": "XML_VALIDATION_ERROR"

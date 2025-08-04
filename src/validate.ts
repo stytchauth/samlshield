@@ -1,4 +1,6 @@
 import {
+  SAMLAssertionExpiredError,
+  SAMLAssertionNotYetValidError,
   SAMLExpectedAtLeastOneSignatureError,
   SAMLResponseFailureError,
   ValidationError,
@@ -945,6 +947,80 @@ function createSignatureXPath(nodeID: string): string {
   );
 }
 
+// Clock skew tolerance in milliseconds
+const CLOCK_SKEW_TOLERANCE_MS = 10 * 60 * 1000; // 10 minutes
+
+// Default time function - can be mocked for testing
+export const getCurrentTime = (): number => new Date().getTime();
+
+function validateTimestamps(parsed: ParsedSAMLResponse): void {
+  const now = getCurrentTime();
+
+  // Skip encrypted assertions - they will be validated after decryption by the consumer
+  if (parsed.encryptedAssertionElement) {
+    return;
+  }
+  let assertionElement = parsed.signedAssertionElement;
+
+  // If the assertion is not signed, but the response is signed, we can use the assertion from the response
+  if (parsed.assertionElement && parsed.isResponseSigned) {
+    assertionElement = parsed.assertionElement;
+  }
+
+  if (!assertionElement) {
+    return;
+  }
+
+  const assertionSelector = createSelector(assertionElement);
+
+  // Validate at most one Conditions element per SAML specification
+  const conditionsElements =
+    assertionSelector.selectElements("./saml:Conditions");
+  if (conditionsElements.length > 1) {
+    throw new XMLValidationError(
+      `Found ${conditionsElements.length} Conditions elements in assertion. SAML specification allows at most one.`,
+    );
+  }
+
+  // Check ~ NotBefore and NotOnOrAfter from signed assertion only
+  const conditionsNotBefore = assertionSelector.selectOptionalSingleAttribute(
+    "./saml:Conditions/@NotBefore",
+  );
+  const conditionsNotOnOrAfter =
+    assertionSelector.selectOptionalSingleAttribute(
+      "./saml:Conditions/@NotOnOrAfter",
+    );
+
+  if (conditionsNotBefore) {
+    const notBeforeTime = new Date(conditionsNotBefore.value).getTime();
+    if (now + CLOCK_SKEW_TOLERANCE_MS < notBeforeTime) {
+      throw new SAMLAssertionNotYetValidError();
+    }
+  }
+
+  if (conditionsNotOnOrAfter) {
+    const notOnOrAfterTime = new Date(conditionsNotOnOrAfter.value).getTime();
+    if (now - CLOCK_SKEW_TOLERANCE_MS > notOnOrAfterTime) {
+      throw new SAMLAssertionExpiredError();
+    }
+  }
+
+  // Check SubjectConfirmationData NotOnOrAfter from signed assertion only
+  const subjectConfirmationNotOnOrAfter =
+    assertionSelector.selectOptionalSingleAttribute(
+      "./saml:Subject/saml:SubjectConfirmation/saml:SubjectConfirmationData/@NotOnOrAfter",
+    );
+
+  if (subjectConfirmationNotOnOrAfter) {
+    const notOnOrAfterTime = new Date(
+      subjectConfirmationNotOnOrAfter.value,
+    ).getTime();
+    if (now - CLOCK_SKEW_TOLERANCE_MS > notOnOrAfterTime) {
+      throw new SAMLAssertionExpiredError();
+    }
+  }
+}
+
 /**
  * Validates a SAML response by first parsing verified elements, then validating only signed content
  * Implements strict security measures including XPath injection prevention and manual node traversal
@@ -978,6 +1054,8 @@ export async function validateSAMLResponse({
 
   // Validate core requirements (signatures and status)
   validateCoreRequirements(parsed);
+
+  validateTimestamps(parsed);
 
   // Validate signature profiles within signed elements only
   validateSignatureProfiles(parsed);

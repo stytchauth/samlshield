@@ -8,5 +8,6 @@
   "input": {
     "response_xml": "!embed:base64:file://groups_and_email_as_attributes.xml"
   },
+  "mockTime": "2022-11-18T22:26:34.4840Z",
   "shouldSucceed": true
 }

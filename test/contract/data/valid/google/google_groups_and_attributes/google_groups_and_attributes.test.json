@@ -9,5 +9,6 @@
   "input": {
     "response_xml": "!embed:base64:file://groups_and_attributes.xml"
   },
+  "mockTime": "2022-11-22T20:34:25.8350Z",
   "shouldSucceed": true
 }
