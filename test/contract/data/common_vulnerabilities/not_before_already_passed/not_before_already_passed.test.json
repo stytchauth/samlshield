@@ -11,5 +11,5 @@
   "mockTime": "2025-07-29T20:00:00.000Z",
   "shouldSucceed": false,
   "expectedError": "SAML assertion not yet valid",
-  "expectedErrorCode": "SAML_ASSERTION_NOT_YET_VALID"
+  "expectedErrorCode": "saml_assertion_not_yet_valid"
 }

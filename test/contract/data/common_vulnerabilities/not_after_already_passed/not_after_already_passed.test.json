@@ -11,5 +11,5 @@
   "mockTime": "2022-11-18T22:30:38.917Z",
   "shouldSucceed": false,
   "expectedError": "SAML assertion expired: clocks skewed too much",
-  "expectedErrorCode": "SAML_ASSERTION_EXPIRED"
+  "expectedErrorCode": "saml_assertion_expired"
 }

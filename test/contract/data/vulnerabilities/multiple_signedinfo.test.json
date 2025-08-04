@@ -7,5 +7,5 @@
   "mockTime": "2022-11-04T03:07:29Z",
   "shouldSucceed": false,
   "expectedError": "response contained multiple SignedInfo elements in a single signature",
-  "expectedErrorCode": "XML_VALIDATION_ERROR"
+  "expectedErrorCode": "xml_validation_error"
 }

@@ -6,5 +6,5 @@
   },
   "shouldSucceed": false,
   "expectedError": "document contains multiple SAML Response elements",
-  "expectedErrorCode": "XML_VALIDATION_ERROR"
+  "expectedErrorCode": "xml_validation_error"
 }

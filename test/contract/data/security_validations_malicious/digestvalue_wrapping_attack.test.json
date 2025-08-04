@@ -6,5 +6,5 @@
   },
   "shouldSucceed": false,
   "expectedError": "Expected exactly one DigestValue per signature, found 2. Multiple DigestValues can enable wrapping attacks",
-  "expectedErrorCode": "XML_VALIDATION_ERROR"
+  "expectedErrorCode": "xml_validation_error"
 }

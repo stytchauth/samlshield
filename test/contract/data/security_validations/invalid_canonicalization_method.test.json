@@ -7,5 +7,5 @@
   "mockTime": "2022-11-17T22:15:54.006Z",
   "shouldSucceed": false,
   "expectedError": "Invalid CanonicalizationMethod algorithm: http://www.w3.org/TR/2001/REC-xml-c14n-20010315",
-  "expectedErrorCode": "XML_VALIDATION_ERROR"
+  "expectedErrorCode": "xml_validation_error"
 }

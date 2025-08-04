@@ -14,5 +14,5 @@
   "mockTime": "2022-11-04T03:05:00Z",
   "shouldSucceed": false,
   "expectedError": "Invalid input: response contained illegal processing instructions",
-  "expectedErrorCode": "XML_VALIDATION_ERROR"
+  "expectedErrorCode": "xml_validation_error"
 }

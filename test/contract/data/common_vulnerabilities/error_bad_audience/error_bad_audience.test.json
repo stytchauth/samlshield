@@ -8,5 +8,5 @@
   "skip": true,
   "shouldSucceed": false,
   "expectedError": "SAML assertion audience mismatch. Expected: INVALID sp_entity_id Received: example",
-  "expectedErrorCode": "SAML_ASSERTION_AUDIENCE_MISMATCH"
+  "expectedErrorCode": "saml_assertion_audience_mismatch"
 }
