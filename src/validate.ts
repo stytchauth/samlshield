@@ -956,14 +956,22 @@ export const getCurrentTime = (): number => new Date().getTime();
 function validateTimestamps(parsed: ParsedSAMLResponse): void {
   const now = getCurrentTime();
 
-  // Only validate timestamps from signed assertions
-  if (!parsed.assertionElement || !parsed.isAssertionSigned) {
-    // Skip timestamp validation for unsigned assertions or encrypted assertions
-    // Encrypted assertions will be validated after decryption by the consumer
+  // Skip encrypted assertions - they will be validated after decryption by the consumer
+  if (parsed.encryptedAssertionElement) {
+    return;
+  }
+  let assertionElement = parsed.signedAssertionElement;
+
+  // If the assertion is not signed, but the response is signed, we can use the assertion from the response
+  if (parsed.assertionElement && parsed.isResponseSigned) {
+    assertionElement = parsed.assertionElement;
+  }
+
+  if (!assertionElement) {
     return;
   }
 
-  const assertionSelector = createSelector(parsed.assertionElement);
+  const assertionSelector = createSelector(assertionElement);
 
   // Validate at most one Conditions element per SAML specification
   const conditionsElements =
