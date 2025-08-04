@@ -13,9 +13,6 @@
     "validation",
     "linting"
   ],
-  "publishConfig": {
-    "access": "restricted"
-  },
   "scripts": {
     "build": "tsc",
     "test": "jest",
