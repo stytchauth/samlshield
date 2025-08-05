@@ -17,7 +17,13 @@ A Node.js library for validating SAML responses. This library provides security-
 
 ## Installation
 
+This library supports npm and yarn package managers:
+
 ```bash
+# Using npm
+npm install @stytch/samlshield
+
+# Using yarn
 yarn add @stytch/samlshield
 ```
 
