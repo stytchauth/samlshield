@@ -48,7 +48,7 @@
     "node": ">=18.0.0"
   },
   "resolutions": {
-    "js-yaml": "^4.1.0"
+    "js-yaml": "^4.1.1"
   },
   "jest": {
     "preset": "ts-jest",
